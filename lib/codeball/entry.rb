@@ -14,6 +14,7 @@ module Codeball
     def self.from_file(path)
       path = Pathname.new(path)
       return nil unless path.exist? && path.readable?
+
       new(path: path.to_s, contents: path.read)
     end
 
@@ -27,6 +28,7 @@ module Codeball
 
     def line_count
       return 0 if contents.empty?
+
       contents.count("\n") + (contents.end_with?("\n") ? 0 : 1)
     end
 
@@ -36,11 +38,12 @@ module Codeball
       dangerous_patterns = [
         /\A\.\./,     # starts with ..
         %r{/\.\.},    # contains /..
-        /\A\//,       # absolute path
-        /\A~/         # home directory expansion
+        %r{\A/}, # absolute path
+        /\A~/ # home directory expansion
       ]
 
       return false if dangerous_patterns.any? { |pattern| path.match?(pattern) }
+
       resolved_path(output_dir).to_s.start_with?(output_dir.to_s)
     end
 
