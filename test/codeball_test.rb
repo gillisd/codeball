@@ -1,4 +1,4 @@
-require "minitest/activate"
+require "minitest/autorun"
 require "tmpdir"
 require "pathname"
 
