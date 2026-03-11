@@ -1,4 +1,5 @@
 require "pathname"
+require 'filemagic'
 
 module Codeball
   # A single file entry within a bundle, with path and contents.
@@ -18,9 +19,11 @@ module Codeball
       new(path: path.to_s, contents: path.read)
     end
 
-    def initialize(path:, contents:)
+    def initialize(path:, contents:, magic_client: FileMagic.mime)
+      raise ArgumentError, "Path must be present" if path.nil? || path.strip.empty?
       @path = path
       @contents = contents
+      @magic_client = magic_client
     end
 
     def empty? = contents.empty?
@@ -32,9 +35,16 @@ module Codeball
       contents.count("\n") + (contents.end_with?("\n") ? 0 : 1)
     end
 
-    def safe_for?(output_dir)
-      return false if path.nil? || path.strip.empty?
+    def text?
+      mime_type.include?("text")
+    end
 
+    def mime_type
+      @mime_type ||= @magic_client.file(@path, true)
+    end
+
+    def safe_for?(output_dir)
+      return false unless text?
       dangerous_patterns = [
         /\A\.\./,     # starts with ..
         %r{/\.\.},    # contains /..
