@@ -19,12 +19,5 @@ module Codeball
 
     command_name "codeball"
     description "Bidirectional file bundler for clipboard-friendly LLM workflows"
-
-#    examples [
-#      "pack lib/*.rb test/*.rb | pbcopy",
-#      "pbpaste | unpack -o extracted/",
-#      "pack --border '###' src/**/*.py",
-#      "unpack --dry-run < bundle.txt"
-#    ]
   end
 end
