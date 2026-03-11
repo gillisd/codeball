@@ -204,7 +204,7 @@ module Codeball
 
     # Serializes the bundle to stdout for piping to clipboard.
     def serialize
-      entries.each_with_index do |entry, index|
+      entries.select(&:text?).each_with_index do |entry, index|
         serialize_entry(entry)
         puts unless index == entries.length - 1
       end
