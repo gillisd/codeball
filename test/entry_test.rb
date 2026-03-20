@@ -57,6 +57,13 @@ class EntryTest < Minitest::Test
     assert_predicate entry, :text?
   end
 
+  def test_entries_share_magic_client_by_default
+    a = Codeball::Entry.new(path: "a.txt", contents: "aaa")
+    b = Codeball::Entry.new(path: "b.txt", contents: "bbb")
+
+    assert_same a.send(:magic_client), b.send(:magic_client)
+  end
+
   def test_safe_for_rejects_dotdot_at_start
     entry = Codeball::Entry.new(path: "../etc/passwd", contents: "x")
 
