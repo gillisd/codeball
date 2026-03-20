@@ -19,11 +19,15 @@ module Codeball
       new(path: path.to_s, contents: path.read)
     end
 
-    def initialize(path:, contents:, magic_client: FileMagic.mime)
+    def self.magic_client
+      @magic_client ||= FileMagic.mime
+    end
+
+    def initialize(path:, contents:, magic_client: nil)
       raise ArgumentError, "Path must be present" if path.nil? || path.strip.empty?
       @path = path
       @contents = contents
-      @magic_client = magic_client
+      @magic_client = magic_client || self.class.magic_client
     end
 
     def empty? = contents.empty?
@@ -36,15 +40,14 @@ module Codeball
     end
 
     def text?
-      mime_type.include?("text")
+      contents.empty? || mime_type.include?("text")
     end
 
     def mime_type
-      @mime_type ||= @magic_client.file(@path, true)
+      @mime_type ||= @magic_client.buffer(@contents)
     end
 
     def safe_for?(output_dir)
-      return false unless text?
       dangerous_patterns = [
         /\A\.\./,     # starts with ..
         %r{/\.\.},    # contains /..
@@ -77,5 +80,9 @@ module Codeball
     rescue SystemCallError => e
       ExtractionResult.new(path: path, error: e.message, status: :failed)
     end
+
+    private
+
+    attr_reader :magic_client
   end
 end
