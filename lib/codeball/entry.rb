@@ -36,15 +36,14 @@ module Codeball
     end
 
     def text?
-      mime_type.include?("text")
+      contents.empty? || mime_type.include?("text")
     end
 
     def mime_type
-      @mime_type ||= @magic_client.file(@path, true)
+      @mime_type ||= @magic_client.buffer(@contents)
     end
 
     def safe_for?(output_dir)
-      return false unless text?
       dangerous_patterns = [
         /\A\.\./,     # starts with ..
         %r{/\.\.},    # contains /..

@@ -51,6 +51,12 @@ class EntryTest < Minitest::Test
     refute_predicate nonempty, :empty?
   end
 
+  def test_empty_entry_is_text
+    entry = Codeball::Entry.new(path: "empty.txt", contents: "")
+
+    assert_predicate entry, :text?
+  end
+
   def test_safe_for_rejects_dotdot_at_start
     entry = Codeball::Entry.new(path: "../etc/passwd", contents: "x")
 
@@ -75,16 +81,16 @@ class EntryTest < Minitest::Test
     refute entry.safe_for?(@output_dir)
   end
 
-  def test_safe_for_rejects_empty_path
-    entry = Codeball::Entry.new(path: "", contents: "x")
-
-    refute entry.safe_for?(@output_dir)
+  def test_rejects_empty_path_at_initialization
+    assert_raises(ArgumentError) do
+      Codeball::Entry.new(path: "", contents: "x")
+    end
   end
 
-  def test_safe_for_rejects_whitespace_only_path
-    entry = Codeball::Entry.new(path: "   ", contents: "x")
-
-    refute entry.safe_for?(@output_dir)
+  def test_rejects_whitespace_only_path_at_initialization
+    assert_raises(ArgumentError) do
+      Codeball::Entry.new(path: "   ", contents: "x")
+    end
   end
 
   def test_safe_for_accepts_simple_filename
