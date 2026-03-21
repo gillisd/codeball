@@ -12,4 +12,6 @@ gem "rake", "~> 13.3"
 
 gem "minitest", "~> 6.0"
 
+gem "minitest-mock", "~> 5.0"
+
 gem "minitest-reporters", "~> 1.7"

@@ -40,7 +40,13 @@ module Codeball
     end
 
     def text?
-      contents.empty? || mime_type.include?("text")
+      contents.empty? || !mime_type.include?("charset=binary")
+    end
+
+    def serialize(border)
+      header = "#{border}\nBEGIN #{path.inspect}\n#{border}\n"
+      footer = "#{border}\nEND #{path.inspect}\n#{border}\n"
+      "#{header}#{contents}#{footer}"
     end
 
     def mime_type

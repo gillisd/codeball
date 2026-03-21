@@ -1,4 +1,5 @@
 require "minitest/autorun"
+require "minitest/mock" # minitest-mock gem — provides Object#stub
 require "tmpdir"
 require "pathname"
 
