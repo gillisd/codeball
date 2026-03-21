@@ -1,0 +1,22 @@
+%rec: Issue
+%key: Id
+%typedef: text_t regexp /^.*$/
+%typedef: Status_t enum open in_progress closed
+%type: Id int
+%type: Title line
+%type: Description text_t
+%type: Status Status_t
+%type: Updated date
+%auto: Id Updated
+%mandatory: Title Description Status
+
+Id: 0
+Updated: Fri, 20 Mar 2026 22:56:44 -0400
+Title: "codeball pack" fails to pack certain files
+Description: When running "codeball pack" on certain files, like data/wont_pack.md, the command:
++ 1. fails silently with no error
++ 2. does not log anything to stdout or stderr
++ 3. exits with error code 0
++ 
++ This is very problematic, as user has no way of knowing why pack failed, or even if it failed. This issue was discovered after realizing the pack was missing a bunch of files, long after the fact. Catastrophic issue, to say the least.
+Status: open
