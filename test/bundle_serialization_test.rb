@@ -62,16 +62,29 @@ class BundleSerializationTest < Minitest::Test
     assert_empty bundle.entries
   end
 
+  def test_serialize_includes_entry_with_non_text_mime_and_text_charset
+    entry = Codeball::Entry.new(path: "code.md", contents: "var x = 1;")
+    bundle = Codeball::Bundle.new([entry], config: @config)
+
+    entry.stub(:mime_type, "application/javascript; charset=us-ascii") do
+      output = capture_io { bundle.serialize }.first
+
+      assert_includes output, 'BEGIN "code.md"'
+      assert_includes output, "var x = 1;"
+    end
+  end
+
   def test_serialize_skips_non_text_without_trailing_blank_line
     text_entry = Codeball::Entry.new(path: "hello.txt", contents: "hello")
     non_text_entry = Codeball::Entry.new(path: "image.png", contents: "binary data")
-    non_text_entry.define_singleton_method(:text?) { false }
     bundle = Codeball::Bundle.new([text_entry, non_text_entry], config: @config)
 
-    output = capture_io { bundle.serialize }.first
+    non_text_entry.stub(:text?, false) do
+      output = capture_io { bundle.serialize }.first
 
-    assert_includes output, 'BEGIN "hello.txt"'
-    refute_includes output, 'BEGIN "image.png"'
-    refute output.end_with?("\n\n"), "Should not have trailing blank line after last entry"
+      assert_includes output, 'BEGIN "hello.txt"'
+      refute_includes output, 'BEGIN "image.png"'
+      refute output.end_with?("\n\n"), "Should not have trailing blank line after last entry"
+    end
   end
 end
