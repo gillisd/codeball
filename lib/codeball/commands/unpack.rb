@@ -26,6 +26,8 @@ module Codeball
       option :dry_run, short: "-n",
                        desc: "Preview extraction without writing files"
 
+      option :quiet, short: '-q', long: '--quiet', desc: "Suppress non-error output"
+
       argument :file, required: false,
                       desc: "Bundle file (or stdin if omitted)"
 
@@ -56,7 +58,7 @@ module Codeball
 
         # Print parse warnings
         bundle.parse_errors.each do |msg|
-          stderr.puts colors.yellow("warning: #{msg}")
+          warn colors.yellow("warning: #{msg}")
         end
 
         # Extract and print results
@@ -67,6 +69,16 @@ module Codeball
 
       private
 
+      def puts(...)
+        return if options[:quiet]
+        stdout.puts(...)
+      end
+
+      def warn(...)
+        return if options[:quiet]
+        stderr.puts(...) 
+      end
+
       def print_results(results, dry_run)
         results.each do |result|
           case result.status
@@ -75,9 +87,9 @@ module Codeball
           when :dry_run
             puts "#{colors.cyan('[dry-run]')} would write: #{result.path} (#{result.size} lines)"
           when :unsafe
-            stderr.puts colors.yellow("warning: skipping unsafe path #{result.path.inspect}")
+            warn colors.yellow("warning: skipping unsafe path #{result.path.inspect}")
           when :failed
-            stderr.puts colors.red("error: #{result.path}: #{result.error}")
+            warn colors.red("error: #{result.path}: #{result.error}")
           end
         end
       end

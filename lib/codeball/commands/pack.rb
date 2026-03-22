@@ -13,21 +13,19 @@ module Codeball
 
       description "Bundle files into a single stream for clipboard transfer"
 
-      # The border pattern repeated between sections.
-      # Default uses tabs which survive most clipboard operations.
       option :border, short: "-b",
                       value: { type: String, default: "---\t" },
-                      desc: "Border pattern"
+                      desc: "The border pattern repeated between sections."
 
-      # How many times to repeat the border pattern.
       option :border_width, short: "-w",
                             value: { type: Integer, default: 10 },
-                            desc: "Border repetitions"
+                            desc: "How many times to repeat the border pattern"
 
-      # Files to pack into the bundle.
+			option :quiet, short: '-q', long: '--quiet', desc: "Suppress non-error output"
+
       argument :files, required: true,
                        repeats: true,
-                       desc: "Files to bundle"
+                       desc: "Files to pack into bundle"
 
       examples [
         "lib/*.rb",
@@ -68,6 +66,7 @@ module Codeball
       end
 
       def warn_skipped(unreadable, non_text)
+				return if options[:quiet]
         unreadable.each { print_error "cannot read file: #{it}" }
         non_text.each { print_error "skipping non-text file: #{it.path} (#{it.mime_type})" }
       end
