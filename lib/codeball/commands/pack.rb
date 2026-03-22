@@ -41,14 +41,35 @@ module Codeball
           exit 1
         end
 
-        config = Config.new(
+        readable, unreadable = validate_files(files)
+        bundle = Bundle.from_files(readable, config: build_config)
+
+        warn_skipped(unreadable, bundle.non_text_entries)
+        bundle.serialize
+
+        exit 1 if unreadable.any? || bundle.non_text_entries.any?
+      end
+
+      private
+
+      def build_config
+        Config.new(
           border:       options[:border],
           border_width: options[:border_width],
           output_dir:   ".",
           dry_run:      false
         )
+      end
 
-        Bundle.from_files(files, config: config).serialize
+      def validate_files(files)
+        files
+          .map { Pathname(it) }
+          .partition { it.exist? && it.readable? }
+      end
+
+      def warn_skipped(unreadable, non_text)
+        unreadable.each { print_error "cannot read file: #{it}" }
+        non_text.each { print_error "skipping non-text file: #{it.path} (#{it.mime_type})" }
       end
     end
   end

@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
                      "pasting into LLM context windows, then unpack the response back into files."
   spec.homepage = "https://github.com/yourusername/codeball"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.1.0"
+  spec.required_ruby_version = ">= 3.4.0"
 
   spec.metadata = {
     "homepage_uri" => spec.homepage,

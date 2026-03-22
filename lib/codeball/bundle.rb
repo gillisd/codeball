@@ -26,6 +26,14 @@ module Codeball
   class Bundle
     attr_reader :entries, :config, :parse_errors
 
+    def text_entries
+      entries.select(&:text?)
+    end
+
+    def non_text_entries
+      entries.reject(&:text?)
+    end
+
     # Creates a bundle by reading files from disk.
     def self.from_files(paths, config: Config.default)
       entries = paths.filter_map { |path| Entry.from_file(path) }
@@ -204,11 +212,7 @@ module Codeball
 
     # Serializes the bundle to stdout for piping to clipboard.
     def serialize
-      text_entries = entries.select(&:text?)
-      text_entries.each_with_index do |entry, index|
-        serialize_entry(entry)
-        puts unless index == text_entries.length - 1
-      end
+      puts text_entries.map { it.serialize(config.full_border) }
     end
 
     # Extracts all entries to disk.
@@ -221,15 +225,5 @@ module Codeball
 
     private
 
-    def serialize_entry(entry)
-      border = config.full_border
-      puts border
-      puts "BEGIN #{entry.path.inspect}"
-      puts border
-      Kernel.print entry.contents
-      puts border
-      puts "END #{entry.path.inspect}"
-      puts border
-    end
   end
 end

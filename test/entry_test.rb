@@ -57,6 +57,22 @@ class EntryTest < Minitest::Test
     assert_predicate entry, :text?
   end
 
+  def test_text_for_non_text_mime_with_text_charset
+    entry = Codeball::Entry.new(path: "code.md", contents: "var x = 1;")
+
+    entry.stub(:mime_type, "application/javascript; charset=us-ascii") do
+      assert_predicate entry, :text?
+    end
+  end
+
+  def test_not_text_for_binary_charset
+    entry = Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n")
+
+    entry.stub(:mime_type, "image/png; charset=binary") do
+      refute_predicate entry, :text?
+    end
+  end
+
   def test_entries_share_magic_client_by_default
     a = Codeball::Entry.new(path: "a.txt", contents: "aaa")
     b = Codeball::Entry.new(path: "b.txt", contents: "bbb")
