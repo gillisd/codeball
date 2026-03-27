@@ -2,16 +2,17 @@
 
 source "https://rubygems.org"
 
-gem 'command_kit'
+gemspec
 
-gem "ruby-filemagic", "~> 0.7.3"
-
-gem "warning", "~> 1.5"
-
-gem "rake", "~> 13.3"
-
+gem "command_kit"
 gem "minitest", "~> 6.0"
-
 gem "minitest-mock", "~> 5.0"
-
 gem "minitest-reporters", "~> 1.7"
+gem "rake"
+gem "rubocop"
+gem "rubocop-md"
+gem "rubocop-minitest"
+gem "rubocop-performance"
+gem "rubocop-rake"
+gem "ruby-filemagic", "~> 0.7.3"
+gem "warning", "~> 1.5"
