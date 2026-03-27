@@ -76,7 +76,7 @@ module Codeball
 
       def warn(...)
         return if options[:quiet]
-        stderr.puts(...) 
+        stderr.puts(...)
       end
 
       def print_results(results, dry_run)

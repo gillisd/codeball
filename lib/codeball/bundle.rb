@@ -155,7 +155,7 @@ module Codeball
       # Check if last line has border suffix (content and border on same line)
       # Pattern: content followed by repeated punctuation (border)
       border_suffix = result.match(/[-#=~*_|+][-#=~*_|+\s]{8,}\s*\z/)
-      
+
       if border_suffix
         # Content didn't end with newline - border was on same line
         # Strip the border and the trailing newline (which belongs to the line, not content)
@@ -185,7 +185,7 @@ module Codeball
       # A border is made of repeated punctuation characters
       # Check if it's all the same punctuation char, or a repeating pattern
       chars = stripped.chars.uniq
-      
+
       # All same character (e.g., "----------")
       return true if chars.length == 1 && !chars.first.match?(/[a-zA-Z0-9]/)
 
@@ -193,7 +193,7 @@ module Codeball
       # Or "###" repeated = all hashes
       # Check if it's only punctuation/dashes
       return true if stripped.match?(/\A[-#=~*_|+]+\z/) && stripped.length >= 9
-      
+
       false
     end
 
