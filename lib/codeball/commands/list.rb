@@ -1,104 +1,78 @@
-require "command_kit/commands/command"
-require "command_kit/printing/tables"
-require "command_kit/colors"
-require "command_kit/open"
+# frozen_string_literal: true
 
-module Foobar
-  refine CommandKit::Printing::Tables::TableFormatter do
-    import_methods CommandKit::Colors
+require 'command_kit/commands/command'
+require 'command_kit/printing/tables'
+require 'command_kit/colors'
+require 'command_kit/open'
 
-    def env
-      (super || {}).merge("TERM" => "1")
+module CommandKit
+  ##
+  # Extends +CommandKit::Printing+ with color-aware table printing.
+  #
+  # Computes column widths from raw text, then applies ANSI color
+  # after padding so escape sequences don't break alignment.
+  module Printing
+    def print_table_color(rows, header: nil, color: :green, index: 0, **)
+      all_rows = header ? [header] + rows : rows
+      widths = column_widths(all_rows)
+      print_header(header, widths) if header
+      rows.each do |row|
+        line = format_row(row, widths, color, index)
+        puts line.join('  ')
+      end
     end
 
     private
 
-    alias_method :o_format_row, :format_row
+    def print_header(header, widths)
+      line = header.each_with_index.map do |cell, i|
+        colors.bold(cell.to_s.ljust(widths[i]))
+      end
+      puts line.join('  ')
+    end
 
-    def format_row(row, **optargs)
-      row.cells.select.with_index do |val, i|
-        i == 1
-      end.each do |it|
-        it.lines.each.with_index do |line, index|
-          it.lines[index] = colors.green(line)
+    def format_row(row, widths, color, index)
+      row.each_with_index.map do |cell, i|
+        padded = cell.to_s.ljust(widths[i])
+        i == index ? colors.public_send(color, padded) : padded
+      end
+    end
+
+    def column_widths(rows)
+      rows.each_with_object(Hash.new(0)) do |row, widths|
+        row.each_with_index do |cell, i|
+          len = cell.to_s.length
+          widths[i] = len if len > widths[i]
         end
       end
-      o_format_row(row, **optargs) do |*args, **kwargs|
-        yield(*args, **kwargs)
-      end
     end
   end
 end
 
-module CommandKit::Printing
-  def print_table_color(*, color: :green, index: 0, **)
-    f = Fiber.new do
-      print_table(*, **)
-    end
-    row = f.resume
-    format! row, color: color, index: index
-    while row = f.resume(row)
-      format! row, color: color, index: index
-    end
-  end
+module CommandKit
+  ##
+  # Opens readable arguments as IO streams, defaulting to stdin.
+  # Uses <tt>CommandKit::Open#open</tt> to handle filenames and +"-"+ for stdin.
+  module CombinedIO
+    include CommandKit::Open
 
-  def print_foo(*)
-    f = Fiber.new do
-      print_table(*)
-    end
-    row = f.resume
-    while row = f.resume(row)
-
-    end
-  end
-
-  def format!(row, color:, index:)
-    row.cells.select.with_index do |val, i|
-      i == index
-    end.each do |it|
-      it.lines.each.with_index do |line, index|
-        it.lines[index] = colors.public_send(color, line).then do |new|
-          new + ("  " * ((new.length * 2) - line.length))
-        end.to_s
-      end
-    end
-  end
-
-  class Tables::TableFormatter
-    include CommandKit::Colors
-
-    def env
-      (super || {}).merge("TERM" => "1")
+    def self.included(base)
+      base.prepend Prepended
     end
 
-    private
-
-    alias o_format_row format_row
-
-    def format_row(row, **)
-      row = Fiber.yield row
-      o_format_row(row, **) do |*args, **kwargs|
-        yield(*args, **)
-      end
-    end
-  end
-end
-
-module CommandKit::Combinedio
-  include CommandKit::Open
-
-  def self.included(base)
-    base.prepend Prepended
-  end
-
-  module Prepended
-    def run(*args)
-      args << "-" if args.empty?
-      ios = args.map { |readable| open(readable) }
-      begin
-        super(*ios)
-      ensure
-        ios.each(&:close)
+    ##
+    # Prepends +run+ to open file arguments (or stdin) as IO streams.
+    module Prepended
+      def run(*args)
+        args << '-' if args.empty?
+        # rubocop:disable Security/Open -- delegates to CommandKit::Open#open, not Kernel#open
+        ios = args.map { |readable| open(readable) }
+        # rubocop:enable Security/Open
+        begin
+          super(*ios)
+        ensure
+          ios.each(&:close)
+        end
       end
     end
   end
@@ -106,62 +80,58 @@ end
 
 module Codeball
   module Commands
-    # List files contained in a codeball bundle.
-    #
+    ##
+    # Lists files contained in a codeball bundle.
     class List < CommandKit::Commands::Command
-      include CommandKit::Combinedio
+      include CommandKit::CombinedIO
       include CommandKit::Colors
       include CommandKit::Printing::Tables
 
-      using Foobar
+      usage '[options] [FILE]'
+      description 'List files in a bundle'
 
-      usage "[options] [FILE]"
-      description "List files in a bundle"
+      option :show_border, short: '-b', desc: 'Show detected border pattern'
 
-      option :show_border, short: "-b", desc: "Show detected border pattern"
+      argument :file, required: false, desc: 'Bundle file (or stdin if omitted)'
 
-      argument :file, required: false, desc: "Bundle file (or stdin if omitted)"
+      examples ['bundle.txt', '-b bundle.txt', '< bundle.txt']
 
-      examples ["bundle.txt", "-b bundle.txt", "< bundle.txt"]
+      ##
+      # Forces ANSI color support even when stdout is not a TTY
+      # (e.g. when piped from +codeball pack+).
+      def env
+        (super || {}).merge('TERM' => '1')
+      end
 
       def run(io)
         input = io.read
-        if input.nil? || input.strip.empty?
-          print_error "no input"
-          exit 1
-        end
-
-        if options[:show_border]
-          border = Bundle.detect_border(input)
-          puts "#{colors.bold('border')}: #{border.inspect}" if border
-          puts
-        end
+        abort_if_empty(input)
+        print_border(input) if options[:show_border]
 
         bundle = Bundle.parse(input, config: Config.default)
+        print_warnings(bundle.parse_errors)
 
-        bundle.parse_errors.each do |msg|
-          stderr.puts colors.yellow("warning: #{msg}")
-        end
+        rows = bundle.entries.map { |e| [e.path, "#{e.line_count} lines"] }
+        print_table_color(rows, header: %w[File Lines], color: :green, index: 0)
+      end
 
-        print_table_color bundle.entries.map { |entry|
-          [entry.line_count, entry.path].reverse
-        }, color: :white, index: 0
-        print_foo bundle.entries.map { |entry| [entry.line_count, entry.path.length].reverse }
-        return
+      private
 
-        total_lines = 0
-        bundle.entries.each do |entry|
-          lines = entry.line_count
-          total_lines += lines
-          puts "#{lines.to_s.rjust(6)} lines  #{entry.path}"
-        end
+      def abort_if_empty(input)
+        return unless input.nil? || input.strip.empty?
 
-        puts "---"
-        # puts "#{colors.bold(bundle.entries.length.to_s)} files, #{colors.bold(total_lines.to_s)} lines"
+        print_error 'no input'
+        exit 1
+      end
 
-        return unless bundle.parse_errors.any?
+      def print_border(input)
+        border = Bundle.detect_border(input)
+        puts "#{colors.bold('border')}: #{border.inspect}" if border
+        puts
+      end
 
-        puts colors.yellow("#{bundle.parse_errors.length} malformed")
+      def print_warnings(errors)
+        errors.each { |msg| stderr.puts colors.yellow("warning: #{msg}") }
       end
     end
   end
