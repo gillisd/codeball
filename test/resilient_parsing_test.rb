@@ -30,8 +30,9 @@ class ResilientParsingTest < Minitest::Test
       this entry is truncated and has no END marker
     BUNDLE
 
-    _out, err = capture_io do
+    capture_io do
       bundle = Codeball::Bundle.parse(input, config: @config)
+
       assert_equal 2, bundle.entries.length
       assert_equal "good1.txt", bundle.entries[0].path
       assert_equal "good2.txt", bundle.entries[1].path
