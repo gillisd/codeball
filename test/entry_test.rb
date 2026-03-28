@@ -66,7 +66,7 @@ class EntryTest < Minitest::Test
   end
 
   def test_not_text_for_binary_charset
-    entry = Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n")
+    entry = Codeball::Entry.new(path: "image.png", contents: "PNG\r\n".b)
 
     entry.stub(:mime_type, "image/png; charset=binary") do
       refute_predicate entry, :text?

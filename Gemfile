@@ -16,3 +16,5 @@ gem "rubocop-performance"
 gem "rubocop-rake"
 gem "ruby-filemagic", "~> 0.7.3"
 gem "warning", "~> 1.5"
+
+gem "rubocop-claude", "~> 0.1"
