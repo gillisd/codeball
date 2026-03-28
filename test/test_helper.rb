@@ -1,9 +1,11 @@
+require "minitest/reporters"
+require "minitest/mock"
 require "minitest/autorun"
-require "minitest/mock" # minitest-mock gem — provides Object#stub
 require "tmpdir"
 require "pathname"
-
 require_relative "../lib/codeball"
+
+Minitest::Reporters.use!
 
 module BundleTestHelper
   def build_bundle(*files)

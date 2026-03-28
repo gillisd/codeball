@@ -7,7 +7,7 @@ gemspec
 gem "command_kit"
 gem "minitest", "~> 6.0"
 gem "minitest-mock", "~> 5.0"
-gem "minitest-reporters", "~> 1.7"
+gem "minitest-reporters", github: 'minitest-reporters/minitest-reporters'
 gem "rake"
 gem "rubocop"
 gem "rubocop-md"
