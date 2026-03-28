@@ -1,12 +1,12 @@
-require "command_kit/commands/command"
+require "command_kit"
+require "command_kit/command"
 require "command_kit/colors"
-require "command_kit/"
 
 module Codeball
   module Commands
     # Extract files from a codeball bundle.
     #
-    class Diff < CommandKit::Commands::Command
+    class Diff < CommandKit::Command
       include CommandKit::Colors
 
       usage "[options] [FILE]"
