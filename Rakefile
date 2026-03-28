@@ -1,9 +1,19 @@
-require "rake/testtask"
+require "bundler/gem_tasks"
+require "minitest/test_task"
+require "rubocop/rake_task"
 
-Rake::TestTask.new(:test) do |t|
-  t.libs << "test"
-  t.libs << "lib"
-  t.test_files = FileList["test/**/*_test.rb"]
+Minitest::TestTask.create
+RuboCop::RakeTask.new
+
+namespace :zeitwerk do
+  desc "Verify all files follow Zeitwerk naming conventions"
+  task :validate do
+    ruby "-e", <<~RUBY
+      require 'codeball'
+      Codeball::LOADER.eager_load(force: true)
+      puts 'Zeitwerk: All files loaded successfully.'
+    RUBY
+  end
 end
 
-task default: :test
+task default: [:test, :rubocop]
