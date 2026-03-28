@@ -3,26 +3,29 @@ require_relative "lib/codeball/version"
 Gem::Specification.new do |spec|
   spec.name = "codeball"
   spec.version = Codeball::VERSION
-  spec.authors = ["Your Name"]
-  spec.email = ["your.email@example.com"]
-
+  spec.authors = ["David Gillis"]
+  spec.email = ["david@flipmine.com"]
   spec.summary = "Bidirectional file bundler for clipboard-friendly LLM workflows"
   spec.description = "Pack multiple source files into a single plaintext bundle for " \
                      "pasting into LLM context windows, then unpack the response back into files."
-  spec.homepage = "https://github.com/yourusername/codeball"
+  spec.homepage = "https://github.com/gillisd/codeball"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.4.0"
+  spec.required_ruby_version = ">= 4.0.1"
 
-  spec.metadata = {
-    "homepage_uri" => spec.homepage,
-    "source_code_uri" => spec.homepage,
-    "changelog_uri" => "#{spec.homepage}/blob/main/CHANGELOG.md"
+  gemspec_file = File.basename(__FILE__)
+  files = IO.popen(["git", "ls-files", "-z"], chdir: __dir__, err: IO::NULL) { |ls|
+    ls.readlines("\x0", chomp: true).reject do |f|
+      (f == gemspec_file) ||
+        f.start_with?("bin/", "test/", "spec/", "features/", ".git", "Gemfile")
+    end
   }
-
-  spec.files = Dir.glob(%w[lib/**/*.rb bin/* LICENSE.txt README.md])
-  spec.bindir = "bin"
-  spec.executables = ["codeball"]
+  files = Dir.glob("{lib,exe,rakelib}/**/*").push("README.md", "LICENSE.txt", "Rakefile") if files.empty?
+  spec.files = files
+  spec.bindir = "exe"
+  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
   spec.add_dependency "command_kit", "~> 0.6"
+  spec.add_dependency "zeitwerk"
+  spec.metadata["rubygems_mfa_required"] = "true"
 end
