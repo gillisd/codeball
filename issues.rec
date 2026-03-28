@@ -20,3 +20,13 @@ Description: When running "codeball pack" on certain files, like data/wont_pack.
 + 
 + This is very problematic, as user has no way of knowing why pack failed, or even if it failed. This issue was discovered after realizing the pack was missing a bunch of files, long after the fact. Catastrophic issue, to say the least.
 Status: open
+
+Id: 1
+Updated: Fri, 27 Mar 2026 21:34:19 -0400
+Title: Version number should appear on --version
+Description: Version number is not appearing, instead showing:
++ codeball --version                                                                   
++ codeball: version unknown
++ 
++ An idiomatic solution should lean on CommandKit's version number feature
+Status: open
