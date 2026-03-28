@@ -9,7 +9,7 @@ class BundleExtractionTest < Minitest::Test
       border: "---\t",
       border_width: 10,
       output_dir: @tmpdir,
-      dry_run: false
+      dry_run: false,
     )
     @border = @config.full_border
   end
@@ -61,7 +61,7 @@ class BundleExtractionTest < Minitest::Test
       border: "---\t",
       border_width: 10,
       output_dir: @tmpdir,
-      dry_run: true
+      dry_run: true,
     )
     input = build_bundle(["test.txt", "hello"])
     bundle = Codeball::Bundle.parse(input, config: dry_config)

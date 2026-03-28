@@ -8,7 +8,6 @@ module Codeball
     # suitable for pasting into LLM context windows.
     #
     class Pack < CommandKit::Commands::Command
-
       usage "[options] FILE..."
 
       description "Bundle files into a single stream for clipboard transfer"
@@ -21,7 +20,7 @@ module Codeball
                             value: { type: Integer, default: 10 },
                             desc: "How many times to repeat the border pattern"
 
-			option :quiet, short: '-q', long: '--quiet', desc: "Suppress non-error output"
+      option :quiet, short: "-q", long: "--quiet", desc: "Suppress non-error output"
 
       argument :files, required: true,
                        repeats: true,
@@ -30,7 +29,7 @@ module Codeball
       examples [
         "lib/*.rb",
         "src/**/*.py --border '###'",
-        "-w 5 README.md lib/*.rb"
+        "-w 5 README.md lib/*.rb",
       ]
 
       def run(*files)
@@ -52,10 +51,10 @@ module Codeball
 
       def build_config
         Config.new(
-          border:       options[:border],
+          border: options[:border],
           border_width: options[:border_width],
-          output_dir:   ".",
-          dry_run:      false
+          output_dir: ".",
+          dry_run: false,
         )
       end
 
@@ -66,7 +65,8 @@ module Codeball
       end
 
       def warn_skipped(unreadable, non_text)
-				return if options[:quiet]
+        return if options[:quiet]
+
         unreadable.each { print_error "cannot read file: #{it}" }
         non_text.each { print_error "skipping non-text file: #{it.path} (#{it.mime_type})" }
       end

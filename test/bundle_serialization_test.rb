@@ -35,7 +35,7 @@ class BundleSerializationTest < Minitest::Test
   def test_serialize_multiple_files_separated
     entries = [
       Codeball::Entry.new(path: "a.txt", contents: "aaa"),
-      Codeball::Entry.new(path: "b.txt", contents: "bbb")
+      Codeball::Entry.new(path: "b.txt", contents: "bbb"),
     ]
     bundle = Codeball::Bundle.new(entries, config: @config)
 

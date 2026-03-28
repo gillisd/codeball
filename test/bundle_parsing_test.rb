@@ -82,12 +82,12 @@ class BundleParsingTest < Minitest::Test
     custom_config = Codeball::Config.new(border: "###", border_width: 5, output_dir: ".", dry_run: false)
     custom_border = custom_config.full_border
 
-    input = "#{custom_border}\n" +
-            "BEGIN \"test.txt\"\n" +
-            "#{custom_border}\n" +
-            "content" +
-            "#{custom_border}\n" +
-            "END \"test.txt\"\n" +
+    input = "#{custom_border}\n" \
+            "BEGIN \"test.txt\"\n" \
+            "#{custom_border}\n" \
+            "content" \
+            "#{custom_border}\n" \
+            "END \"test.txt\"\n" \
             "#{custom_border}\n"
 
     bundle = Codeball::Bundle.parse(input, config: custom_config)
@@ -100,12 +100,12 @@ class BundleParsingTest < Minitest::Test
     custom_config = Codeball::Config.new(border: "+++", border_width: 3, output_dir: ".", dry_run: false)
     custom_border = custom_config.full_border
 
-    input = "#{custom_border}\n" +
-            "BEGIN \"test.txt\"\n" +
-            "#{custom_border}\n" +
-            "content" +
-            "#{custom_border}\n" +
-            "END \"test.txt\"\n" +
+    input = "#{custom_border}\n" \
+            "BEGIN \"test.txt\"\n" \
+            "#{custom_border}\n" \
+            "content" \
+            "#{custom_border}\n" \
+            "END \"test.txt\"\n" \
             "#{custom_border}\n"
 
     bundle = Codeball::Bundle.parse(input, config: custom_config)

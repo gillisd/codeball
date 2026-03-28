@@ -18,9 +18,11 @@ class ConfigTest < Minitest::Test
 
   def test_terminator_is_last_character_of_border
     config = Codeball::Config.new(border: "---\t", border_width: 1, output_dir: ".", dry_run: false)
+
     assert_equal "\t", config.terminator
 
     config = Codeball::Config.new(border: "###", border_width: 1, output_dir: ".", dry_run: false)
+
     assert_equal "#", config.terminator
   end
 end

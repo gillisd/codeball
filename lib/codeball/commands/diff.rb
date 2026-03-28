@@ -33,21 +33,19 @@ module Codeball
       examples [
         "bundle.txt",
         "-n bundle.txt",
-        "< bundle.txt"
+        "< bundle.txt",
       ]
 
       def run(file = nil)
         config = Config.new(
           border: options[:border],
-          border_width: options[:border_width]
+          border_width: options[:border_width],
         )
 
         ARGV.replace(file ? [file] : [])
         input = ARGF.read
 
-        if input.nil? || input.strip.empty?
-          print_error "no input"
-        end
+        print_error "no input" if input.nil? || input.strip.empty?
 
         bundle = Bundle.parse(input, config: config)
 

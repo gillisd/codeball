@@ -1,5 +1,5 @@
 require "pathname"
-require 'filemagic'
+require "filemagic"
 
 module Codeball
   # A single file entry within a bundle, with path and contents.
@@ -25,6 +25,7 @@ module Codeball
 
     def initialize(path:, contents:, magic_client: nil)
       raise ArgumentError, "Path must be present" if path.nil? || path.strip.empty?
+
       @path = path
       @contents = contents
       @magic_client = magic_client || self.class.magic_client
@@ -58,7 +59,7 @@ module Codeball
         /\A\.\./,     # starts with ..
         %r{/\.\.},    # contains /..
         %r{\A/}, # absolute path
-        /\A~/ # home directory expansion
+        /\A~/, # home directory expansion
       ]
 
       return false if dangerous_patterns.any? { |pattern| path.match?(pattern) }

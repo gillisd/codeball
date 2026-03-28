@@ -5,7 +5,7 @@ class ExtractionSummaryTest < Minitest::Test
     results = [
       Codeball::ExtractionResult.new(path: "a", status: :written),
       Codeball::ExtractionResult.new(path: "b", status: :written),
-      Codeball::ExtractionResult.new(path: "c", status: :unsafe)
+      Codeball::ExtractionResult.new(path: "c", status: :unsafe),
     ]
 
     summary = Codeball::ExtractionSummary.new(results)
@@ -17,7 +17,7 @@ class ExtractionSummaryTest < Minitest::Test
   def test_dry_run_counts_as_extracted
     results = [
       Codeball::ExtractionResult.new(path: "a", status: :dry_run),
-      Codeball::ExtractionResult.new(path: "b", status: :dry_run)
+      Codeball::ExtractionResult.new(path: "b", status: :dry_run),
     ]
 
     summary = Codeball::ExtractionSummary.new(results)

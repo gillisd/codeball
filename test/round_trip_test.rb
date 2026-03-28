@@ -7,7 +7,7 @@ class RoundTripTest < Minitest::Test
       border: "---\t",
       border_width: 10,
       output_dir: @tmpdir,
-      dry_run: false
+      dry_run: false,
     )
   end
 
@@ -31,7 +31,7 @@ class RoundTripTest < Minitest::Test
     originals = [
       Codeball::Entry.new(path: "a.txt", contents: "aaa"),
       Codeball::Entry.new(path: "b.txt", contents: "bbb"),
-      Codeball::Entry.new(path: "c.txt", contents: "ccc")
+      Codeball::Entry.new(path: "c.txt", contents: "ccc"),
     ]
     bundle = Codeball::Bundle.new(originals, config: @config)
 
@@ -59,7 +59,7 @@ class RoundTripTest < Minitest::Test
     originals = [
       Codeball::Entry.new(path: "before.txt", contents: "before"),
       Codeball::Entry.new(path: "empty.txt", contents: ""),
-      Codeball::Entry.new(path: "after.txt", contents: "after")
+      Codeball::Entry.new(path: "after.txt", contents: "after"),
     ]
     bundle = Codeball::Bundle.new(originals, config: @config)
 
@@ -87,7 +87,7 @@ class RoundTripTest < Minitest::Test
       border: "###",
       border_width: 5,
       output_dir: @tmpdir,
-      dry_run: false
+      dry_run: false,
     )
     original = Codeball::Entry.new(path: "test.txt", contents: "custom border")
     bundle = Codeball::Bundle.new([original], config: custom_config)
@@ -131,7 +131,7 @@ class RoundTripTest < Minitest::Test
     FileUtils.touch(File.join(source_dir, "empty.txt"))
 
     Dir.chdir(source_dir) do
-      files = Dir.glob("*").sort
+      files = Dir.glob("*")
       bundle = Codeball::Bundle.from_files(files, config: @config)
       @serialized = capture_io { bundle.serialize }.first
     end
@@ -140,7 +140,7 @@ class RoundTripTest < Minitest::Test
       border: @config.border,
       border_width: @config.border_width,
       output_dir: dest_dir,
-      dry_run: false
+      dry_run: false,
     )
     parsed = Codeball::Bundle.parse(@serialized, config: dest_config)
     capture_io { parsed.extract }
@@ -148,6 +148,7 @@ class RoundTripTest < Minitest::Test
     %w[a.txt b.txt empty.txt].each do |basename|
       original = File.read(File.join(source_dir, basename))
       extracted = File.read(File.join(dest_dir, basename))
+
       assert_equal original, extracted, "Content mismatch for #{basename}"
     end
   end

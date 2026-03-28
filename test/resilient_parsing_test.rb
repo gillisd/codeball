@@ -50,9 +50,9 @@ class ResilientParsingTest < Minitest::Test
       border,
       'BEGIN "test.txt"',
       border,
-      "hello world" + border,
+      "hello world#{border}",
       'END "test.txt"',
-      border
+      border,
     ].join("\n") + "\n"
 
     bundle = Codeball::Bundle.parse(input, config: @config)

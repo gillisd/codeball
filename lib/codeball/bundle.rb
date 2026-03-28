@@ -12,27 +12,17 @@ module Codeball
   # Packing files into a bundle:
   #
   # ```ruby
-  # bundle = Bundle.from_files(["lib/foo.rb", "lib/bar.rb"])
   # bundle.serialize  # writes to stdout
   # ```
   #
   # Unpacking a bundle from text:
   #
   # ```ruby
-  # bundle = Bundle.parse(clipboard_contents)
   # bundle.extract  # writes files to disk
   # ```
   #
   class Bundle
     attr_reader :entries, :config, :parse_errors
-
-    def text_entries
-      entries.select(&:text?)
-    end
-
-    def non_text_entries
-      entries.reject(&:text?)
-    end
 
     # Creates a bundle by reading files from disk.
     def self.from_files(paths, config: Config.default)
@@ -57,7 +47,7 @@ module Codeball
         line = lines[i].strip
 
         # Only recognize BEGIN if preceded by a border line
-        if line.start_with?("BEGIN ") && i > 0 && looks_like_border?(lines[i - 1].strip)
+        if line.start_with?("BEGIN ") && i.positive? && looks_like_border?(lines[i - 1].strip)
           path = extract_path_from_line(line)
           if path
             content_start = find_content_start(lines, i + 1)
@@ -102,6 +92,7 @@ module Codeball
       while i < lines.length
         line = lines[i].strip
         break unless looks_like_border?(line)
+
         i += 1
       end
       # If we found non-border content, the content starts here
@@ -143,9 +134,7 @@ module Codeball
       return "" if end_idx < start_idx
 
       # Skip leading border lines
-      while start_idx <= end_idx && looks_like_border?(lines[start_idx].strip)
-        start_idx += 1
-      end
+      start_idx += 1 while start_idx <= end_idx && looks_like_border?(lines[start_idx].strip)
 
       return "" if start_idx > end_idx
 
@@ -180,7 +169,7 @@ module Codeball
       # Remove all whitespace and check what's left
       stripped = line.gsub(/\s+/, "")
       return false if stripped.empty?
-      return false if stripped.length < 6  # Too short to be a border
+      return false if stripped.length < 6 # Too short to be a border
 
       # A border is made of repeated punctuation characters
       # Check if it's all the same punctuation char, or a repeating pattern
@@ -200,6 +189,7 @@ module Codeball
     # Returns the border pattern detected in the bundle, or nil if not determinable.
     def self.detect_border(text)
       return nil if text.nil? || text.empty?
+
       first_line = text.lines.first&.chomp
       first_line if looks_like_border?(first_line.to_s)
     end
@@ -210,9 +200,17 @@ module Codeball
       @parse_errors = parse_errors
     end
 
+    def text_entries
+      entries.select(&:text?)
+    end
+
+    def non_text_entries
+      entries.reject(&:text?)
+    end
+
     # Serializes the bundle to stdout for piping to clipboard.
     def serialize
-      puts text_entries.map { it.serialize(config.full_border) }
+      puts(text_entries.map { it.serialize(config.full_border) })
     end
 
     # Extracts all entries to disk.
@@ -222,8 +220,5 @@ module Codeball
       results = entries.map { |entry| entry.write_to(output_dir, dry_run: config.dry_run) }
       ExtractionSummary.new(results, malformed: parse_errors.length)
     end
-
-    private
-
   end
 end

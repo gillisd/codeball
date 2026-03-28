@@ -26,7 +26,7 @@ module Codeball
       option :dry_run, short: "-n",
                        desc: "Preview extraction without writing files"
 
-      option :quiet, short: '-q', long: '--quiet', desc: "Suppress non-error output"
+      option :quiet, short: "-q", long: "--quiet", desc: "Suppress non-error output"
 
       argument :file, required: false,
                       desc: "Bundle file (or stdin if omitted)"
@@ -35,15 +35,15 @@ module Codeball
         "bundle.txt",
         "-n bundle.txt",
         "-o extracted/ bundle.txt",
-        "< bundle.txt"
+        "< bundle.txt",
       ]
 
       def run(file = nil)
         config = Config.new(
-          border:       options[:border],
+          border: options[:border],
           border_width: options[:border_width],
-          output_dir:   options[:output_dir],
-          dry_run:      options[:dry_run] || false
+          output_dir: options[:output_dir],
+          dry_run: options[:dry_run] || false,
         )
 
         ARGV.replace(file ? [file] : [])
@@ -71,21 +71,23 @@ module Codeball
 
       def puts(...)
         return if options[:quiet]
+
         stdout.puts(...)
       end
 
       def warn(...)
         return if options[:quiet]
+
         stderr.puts(...)
       end
 
-      def print_results(results, dry_run)
+      def print_results(results, _dry_run)
         results.each do |result|
           case result.status
           when :written
-            puts "#{colors.green('wrote')}: #{result.path} (#{result.size} lines)"
+            puts "#{colors.green("wrote")}: #{result.path} (#{result.size} lines)"
           when :dry_run
-            puts "#{colors.cyan('[dry-run]')} would write: #{result.path} (#{result.size} lines)"
+            puts "#{colors.cyan("[dry-run]")} would write: #{result.path} (#{result.size} lines)"
           when :unsafe
             warn colors.yellow("warning: skipping unsafe path #{result.path.inspect}")
           when :failed
@@ -95,15 +97,15 @@ module Codeball
       end
 
       def print_summary(summary, dry_run)
-        prefix = dry_run ? "#{colors.cyan('[dry-run]')} " : ""
+        prefix = dry_run ? "#{colors.cyan("[dry-run]")} " : ""
         puts "---"
 
         parts = []
-        parts << "#{colors.green("extracted: #{summary.extracted}")}"
-        parts << (summary.skipped > 0 ? colors.yellow("skipped: #{summary.skipped}") : "skipped: 0")
-        parts << colors.yellow("malformed: #{summary.malformed}") if summary.malformed > 0
+        parts << colors.green("extracted: #{summary.extracted}").to_s
+        parts << (summary.skipped.positive? ? colors.yellow("skipped: #{summary.skipped}") : "skipped: 0")
+        parts << colors.yellow("malformed: #{summary.malformed}") if summary.malformed.positive?
 
-        puts "#{prefix}#{parts.join(', ')}"
+        puts "#{prefix}#{parts.join(", ")}"
       end
     end
   end

@@ -4,15 +4,11 @@ module Codeball
   # ## Example
   #
   # ```ruby
-  # result = entry.write_to(output_dir)
-  # if result.success?
   #   puts "Wrote #{result.path}"
-  # else
   #   puts "Failed: #{result.error}"
-  # end
   # ```
   #
-  ExtractionResult = Struct.new(:path, :size, :status, :error, keyword_init: true) do
+  ExtractionResult = Struct.new(:path, :size, :status, :error) do
     # Whether the extraction completed successfully.
     # Both actual writes and dry-run simulations count as success.
     def success? = status.in?(%i[written dry_run])

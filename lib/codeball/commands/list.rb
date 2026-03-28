@@ -1,9 +1,7 @@
-# frozen_string_literal: true
-
-require 'command_kit/commands/command'
-require 'command_kit/printing/tables'
-require 'command_kit/colors'
-require 'command_kit/open'
+require "command_kit/commands/command"
+require "command_kit/printing/tables"
+require "command_kit/colors"
+require "command_kit/open"
 
 module CommandKit
   ##
@@ -18,7 +16,7 @@ module CommandKit
       print_header(header, widths) if header
       rows.each do |row|
         line = format_row(row, widths, color, index)
-        puts line.join('  ')
+        puts line.join("  ")
       end
     end
 
@@ -28,7 +26,7 @@ module CommandKit
       line = header.each_with_index.map do |cell, i|
         colors.bold(cell.to_s.ljust(widths[i]))
       end
-      puts line.join('  ')
+      puts line.join("  ")
     end
 
     def format_row(row, widths, color, index)
@@ -64,10 +62,10 @@ module CommandKit
     # Prepends +run+ to open file arguments (or stdin) as IO streams.
     module Prepended
       def run(*args)
-        args << '-' if args.empty?
-        # rubocop:disable Security/Open -- delegates to CommandKit::Open#open, not Kernel#open
+        args << "-" if args.empty?
+
         ios = args.map { |readable| open(readable) }
-        # rubocop:enable Security/Open
+
         begin
           super(*ios)
         ensure
@@ -87,20 +85,20 @@ module Codeball
       include CommandKit::Colors
       include CommandKit::Printing::Tables
 
-      usage '[options] [FILE]'
-      description 'List files in a bundle'
+      usage "[options] [FILE]"
+      description "List files in a bundle"
 
-      option :show_border, short: '-b', desc: 'Show detected border pattern'
+      option :show_border, short: "-b", desc: "Show detected border pattern"
 
-      argument :file, required: false, desc: 'Bundle file (or stdin if omitted)'
+      argument :file, required: false, desc: "Bundle file (or stdin if omitted)"
 
-      examples ['bundle.txt', '-b bundle.txt', '< bundle.txt']
+      examples ["bundle.txt", "-b bundle.txt", "< bundle.txt"]
 
       ##
       # Forces ANSI color support even when stdout is not a TTY
       # (e.g. when piped from +codeball pack+).
       def env
-        (super || {}).merge('TERM' => '1')
+        (super || {}).merge("TERM" => "1")
       end
 
       def run(io)
@@ -120,13 +118,13 @@ module Codeball
       def abort_if_empty(input)
         return unless input.nil? || input.strip.empty?
 
-        print_error 'no input'
+        print_error "no input"
         exit 1
       end
 
       def print_border(input)
         border = Bundle.detect_border(input)
-        puts "#{colors.bold('border')}: #{border.inspect}" if border
+        puts "#{colors.bold("border")}: #{border.inspect}" if border
         puts
       end
 

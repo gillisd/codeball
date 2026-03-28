@@ -1,14 +1,14 @@
-require 'warning'
+require "warning"
 require "zeitwerk"
 
 module Codeball
-  LOADER = Zeitwerk::Loader.for_gem
-  LOADER.inflector.inflect( 'cli' => 'CLI' )
+  LOADER = Zeitwerk::Loader.for_gem.freeze
+  LOADER.inflector.inflect("cli" => "CLI")
   LOADER.setup
 
-# CLI requires command_kit gem - only load if available
+  # CLI requires command_kit gem - only load if available
   begin
-    require 'command_kit'
+    require "command_kit"
     require_relative "codeball/cli"
     Warning.ignore(/FileMagic/)
   rescue LoadError
