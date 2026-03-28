@@ -10,7 +10,7 @@
 %auto: Id Updated
 %mandatory: Title Description Status
 
-Id: 0
+Id: CD8C2A41-A996-4A20-9E80-762201592415
 Updated: Fri, 20 Mar 2026 22:56:44 -0400
 Title: "codeball pack" fails to pack certain files
 Description: When running "codeball pack" on certain files, like data/wont_pack.md, the command:
@@ -21,7 +21,7 @@ Description: When running "codeball pack" on certain files, like data/wont_pack.
 + This is very problematic, as user has no way of knowing why pack failed, or even if it failed. This issue was discovered after realizing the pack was missing a bunch of files, long after the fact. Catastrophic issue, to say the least.
 Status: closed
 
-Id: 1
+Id: 439180B4-31A8-4090-860A-125CB517C111
 Updated: Fri, 27 Mar 2026 21:34:19 -0400
 Title: Version number should appear on --version
 Description: Version number is not appearing, instead showing:
@@ -30,3 +30,4 @@ Description: Version number is not appearing, instead showing:
 + 
 + An idiomatic solution should lean on CommandKit's version number feature
 Status: open
+
