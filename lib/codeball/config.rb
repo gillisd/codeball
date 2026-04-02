@@ -1,3 +1,5 @@
+##
+# Bidirectional file bundler for clipboard-friendly LLM workflows.
 module Codeball
   # Configuration for bundle format and extraction behavior.
   #
