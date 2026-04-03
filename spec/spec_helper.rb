@@ -2,6 +2,7 @@ require "open3"
 require "tmpdir"
 require "pathname"
 require "fileutils"
+require_relative "support/have_output_line"
 
 ##
 # Harness for running the codeball CLI as a subprocess.
@@ -11,8 +12,9 @@ require "fileutils"
 module CLIHelper
   CLIResult = Struct.new(:stdout, :stderr, :exit_code, keyword_init: true)
 
-  EXE = File.expand_path("../../exe/codeball", __dir__).freeze
-  RUBY_CMD = [RbConfig.ruby, "-I", File.expand_path("../../lib", __dir__), EXE].freeze
+  PROJECT_ROOT = File.expand_path("..", __dir__).freeze
+  EXE = File.join(PROJECT_ROOT, "exe/codeball").freeze
+  RUBY_CMD = [RbConfig.ruby, "-I", File.join(PROJECT_ROOT, "lib"), EXE].freeze
 
   def run_codeball(*args, stdin: nil)
     stdout, stderr, status = Open3.capture3(
@@ -46,9 +48,14 @@ module CLIHelper
     File.read(File.join(tmp_dir, path))
   end
 
+  def output_path(path)
+    Pathname.new(tmp_dir) / path
+  end
+
   def pack_bundle(*file_pairs)
-    paths = file_pairs.map { |name, contents| create_file(name, contents) }
-    result = run_codeball("pack", *paths)
+    file_pairs.each { |name, contents| create_file(name, contents) }
+    names = file_pairs.map(&:first)
+    result = run_codeball("pack", *names)
     raise "pack_bundle failed (exit #{result.exit_code}): #{result.stderr}" unless result.exit_code.zero?
 
     result.stdout
@@ -57,6 +64,10 @@ end
 
 RSpec.configure do |config|
   config.include CLIHelper, type: :integration
+
+  config.define_derived_metadata do |meta|
+    meta[:aggregate_failures] = true unless meta.key?(:aggregate_failures)
+  end
 
   config.after(:each, type: :integration) do
     FileUtils.rm_rf(@tmp_dir) if @tmp_dir
