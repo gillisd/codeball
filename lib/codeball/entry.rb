@@ -76,14 +76,7 @@ module Codeball
       return ExtractionResult.new(path: path, status: :unsafe) unless safe_for?(output_dir)
 
       resolved = resolved_path(output_dir)
-
-      if dry_run
-        ExtractionResult.new(path: resolved, size: line_count, status: :dry_run)
-      else
-        resolved.parent.mkpath
-        resolved.write(contents)
-        ExtractionResult.new(path: resolved, size: line_count, status: :written)
-      end
+      dry_run ? dry_run_result(resolved) : persist(resolved)
     rescue SystemCallError => e
       ExtractionResult.new(path: path, error: e.message, status: :failed)
     end
@@ -91,5 +84,15 @@ module Codeball
     private
 
     attr_reader :magic_client
+
+    def dry_run_result(resolved)
+      ExtractionResult.new(path: resolved, line_count: line_count, status: :dry_run)
+    end
+
+    def persist(resolved)
+      resolved.parent.mkpath
+      resolved.write(contents)
+      ExtractionResult.new(path: resolved, line_count: line_count, status: :written)
+    end
   end
 end

@@ -39,35 +39,48 @@ module Codeball
       ]
 
       def run(file = nil)
-        config = Config.new(
-          border: options[:border],
-          border_width: options[:border_width],
-          output_dir: options[:output_dir],
-          dry_run: options[:dry_run] || false,
-        )
-
-        ARGV.replace(file ? [file] : [])
-        input = ARGF.read
-
-        if input.nil? || input.strip.empty?
-          print_error "no input"
-          exit 1
-        end
-
+        config = build_config
+        input = read_input(file)
         bundle = Bundle.parse(input, config: config)
 
-        # Print parse warnings
-        bundle.parse_errors.each do |msg|
-          warn colors.yellow("warning: #{msg}")
-        end
+        print_parse_warnings(bundle.parse_errors)
 
-        # Extract and print results
         summary = bundle.extract
         print_results(summary.results, config.dry_run)
         print_summary(summary, config.dry_run)
       end
 
       private
+
+      def build_config
+        Config.new(
+          border: options[:border],
+          border_width: options[:border_width],
+          output_dir: options[:output_dir],
+          dry_run: options[:dry_run] || false,
+        )
+      end
+
+      def read_input(file)
+        ARGV.replace(file ? [file] : [])
+        input = ARGF.read
+
+        abort_on_empty(input)
+        input
+      end
+
+      def abort_on_empty(input)
+        return unless input.nil? || input.strip.empty?
+
+        print_error "no input"
+        exit 1
+      end
+
+      def print_parse_warnings(errors)
+        errors.each do |msg|
+          warn colors.yellow("warning: #{msg}")
+        end
+      end
 
       def puts(...)
         return if options[:quiet]
@@ -81,31 +94,54 @@ module Codeball
         stderr.puts(...)
       end
 
-      def print_results(results, _dry_run)
-        results.each do |result|
-          case result.status
-          when :written
-            puts "#{colors.green("wrote")}: #{result.path} (#{result.size} lines)"
-          when :dry_run
-            puts "#{colors.cyan("[dry-run]")} would write: #{result.path} (#{result.size} lines)"
-          when :unsafe
-            warn colors.yellow("warning: skipping unsafe path #{result.path.inspect}")
-          when :failed
-            warn colors.red("error: #{result.path}: #{result.error}")
-          end
+      def print_results(results, dry_run)
+        results.each { |result| print_single_result(result, dry_run) }
+      end
+
+      def print_single_result(result, _dry_run)
+        case result.status
+        when :written  then print_written(result)
+        when :dry_run  then print_dry_run(result)
+        when :unsafe   then print_unsafe(result)
+        when :failed   then print_failed(result)
         end
+      end
+
+      def print_written(result)
+        puts "#{colors.green("wrote")}: #{result.path} (#{result.line_count} lines)"
+      end
+
+      def print_dry_run(result)
+        puts "#{colors.cyan("[dry-run]")} would write: #{result.path} (#{result.line_count} lines)"
+      end
+
+      def print_unsafe(result)
+        warn colors.yellow("warning: skipping unsafe path #{result.path.inspect}")
+      end
+
+      def print_failed(result)
+        warn colors.red("error: #{result.path}: #{result.error}")
       end
 
       def print_summary(summary, dry_run)
         prefix = dry_run ? "#{colors.cyan("[dry-run]")} " : ""
         puts "---"
+        puts "#{prefix}#{summary_parts(summary).join(", ")}"
+      end
 
-        parts = []
-        parts << colors.green("extracted: #{summary.extracted}").to_s
-        parts << (summary.skipped.positive? ? colors.yellow("skipped: #{summary.skipped}") : "skipped: 0")
+      def summary_parts(summary)
+        parts = [colors.green("extracted: #{summary.extracted}").to_s]
+        parts << skipped_part(summary)
         parts << colors.yellow("malformed: #{summary.malformed}") if summary.malformed.positive?
+        parts
+      end
 
-        puts "#{prefix}#{parts.join(", ")}"
+      def skipped_part(summary)
+        if summary.skipped.positive?
+          colors.yellow("skipped: #{summary.skipped}")
+        else
+          "skipped: 0"
+        end
       end
     end
   end

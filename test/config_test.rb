@@ -1,11 +1,16 @@
 require_relative "test_helper"
 
 class ConfigTest < Minitest::Test
-  def test_default_config_values
+  def test_default_border_and_width
     config = Codeball::Config.default
 
     assert_equal "---\t", config.border
     assert_equal 10, config.border_width
+  end
+
+  def test_default_output_dir_and_dry_run
+    config = Codeball::Config.default
+
     assert_equal ".", config.output_dir
     refute_predicate config, :dry_run
   end

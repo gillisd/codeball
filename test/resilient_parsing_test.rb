@@ -5,40 +5,24 @@ class ResilientParsingTest < Minitest::Test
     @config = Codeball::Config.default
   end
 
-  def test_parses_valid_entries_despite_truncated_final_entry
-    # Two complete entries, one truncated
-    input = <<~BUNDLE
-      ##############################
-      BEGIN "good1.txt"
-      ##############################
-      content one
-      ##############################
-      END "good1.txt"
-      ##############################
+  def test_truncated_final_entry_preserves_valid_entry_count
+    bundle = parse_bundle_with_truncated_entry
 
-      ##############################
-      BEGIN "good2.txt"
-      ##############################
-      content two
-      ##############################
-      END "good2.txt"
-      ##############################
+    assert_equal 2, bundle.entries.length
+  end
 
-      ##############################
-      BEGIN "truncated.txt"
-      ##############################
-      this entry is truncated and has no END marker
-    BUNDLE
+  def test_truncated_final_entry_preserves_valid_paths
+    bundle = parse_bundle_with_truncated_entry
 
-    capture_io do
-      bundle = Codeball::Bundle.parse(input, config: @config)
+    assert_equal "good1.txt", bundle.entries[0].path
+    assert_equal "good2.txt", bundle.entries[1].path
+  end
 
-      assert_equal 2, bundle.entries.length
-      assert_equal "good1.txt", bundle.entries[0].path
-      assert_equal "good2.txt", bundle.entries[1].path
-      assert_equal 1, bundle.parse_errors.length
-      assert_includes bundle.parse_errors.first, "truncated"
-    end
+  def test_truncated_final_entry_records_parse_error
+    bundle = parse_bundle_with_truncated_entry
+
+    assert_equal 1, bundle.parse_errors.length
+    assert_includes bundle.parse_errors.first, "truncated"
   end
 
   def test_parses_with_tabs_converted_to_spaces
@@ -46,14 +30,15 @@ class ResilientParsingTest < Minitest::Test
     # When content has no trailing newline, border appears on same line.
     # Test that parsing works when tabs become spaces.
     border = "---     " * 10
-    input = [
+    lines = [
       border,
       'BEGIN "test.txt"',
       border,
       "hello world#{border}",
       'END "test.txt"',
       border,
-    ].join("\n") + "\n"
+    ].join("\n")
+    input = "#{lines}\n"
 
     bundle = Codeball::Bundle.parse(input, config: @config)
 
@@ -148,5 +133,39 @@ class ResilientParsingTest < Minitest::Test
     assert_equal 1, bundle.entries.length, "Should only find 1 entry (real.txt), not 2"
     assert_equal "real.txt", bundle.entries.first.path
     assert_equal "real content\n", bundle.entries.first.contents
+  end
+
+  private
+
+  def parse_bundle_with_truncated_entry
+    input = truncated_bundle_input
+    bundle = nil
+    capture_io { bundle = Codeball::Bundle.parse(input, config: @config) }
+    bundle
+  end
+
+  def truncated_bundle_input
+    <<~BUNDLE
+      ##############################
+      BEGIN "good1.txt"
+      ##############################
+      content one
+      ##############################
+      END "good1.txt"
+      ##############################
+
+      ##############################
+      BEGIN "good2.txt"
+      ##############################
+      content two
+      ##############################
+      END "good2.txt"
+      ##############################
+
+      ##############################
+      BEGIN "truncated.txt"
+      ##############################
+      this entry is truncated and has no END marker
+    BUNDLE
   end
 end

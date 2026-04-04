@@ -10,7 +10,7 @@ require_relative "support/have_output_line"
 # Every helper runs against +tmp_dir+, a per-example temp directory
 # that is cleaned up automatically after each spec.
 module CLIHelper
-  CLIResult = Struct.new(:stdout, :stderr, :exit_code, keyword_init: true)
+  CLIResult = Struct.new(:stdout, :stderr, :exit_code)
 
   PROJECT_ROOT = File.expand_path("..", __dir__).freeze
   EXE = File.join(PROJECT_ROOT, "exe/codeball").freeze
@@ -20,7 +20,7 @@ module CLIHelper
     stdout, stderr, status = Open3.capture3(
       *RUBY_CMD, *args,
       stdin_data: stdin,
-      chdir: tmp_dir,
+      chdir: tmp_dir
     )
     CLIResult.new(stdout: stdout, stderr: stderr, exit_code: status.exitstatus)
   end
@@ -39,8 +39,9 @@ module CLIHelper
   def create_binary_file(path)
     full = File.join(tmp_dir, path)
     FileUtils.mkdir_p(File.dirname(full))
-    # Minimal PNG header — detected as image/png by libmagic
-    File.binwrite(full, "\x89PNG\r\n\x1A\n" + ("\x00" * 64))
+    # Minimal PNG header -- detected as image/png by libmagic
+    png_stub = ([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] + ([0] * 64)).pack("C*")
+    File.binwrite(full, png_stub)
     full
   end
 

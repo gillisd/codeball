@@ -118,7 +118,7 @@ RSpec.describe "codeball pack | unpack round trip", type: :integration do
     end
 
     it "preserves emoji" do
-      content = "🎉🚀💎\n"
+      content = "#{[0x1F389, 0x1F680, 0x1F48E].pack("U*")}\n"
       create_file("emoji.txt", content)
 
       pack_result = run_codeball("pack", "emoji.txt")
@@ -178,7 +178,7 @@ RSpec.describe "codeball pack | unpack round trip", type: :integration do
   end
 
   describe "large file" do
-    let(:content) { (1..10_000).map { |i| "line #{i}: #{("x" * 40)}\n" }.join }
+    let(:content) { (1..10_000).map { |i| "line #{i}: #{"x" * 40}\n" }.join }
 
     before { create_file("large.txt", content) }
 

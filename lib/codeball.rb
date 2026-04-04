@@ -9,6 +9,7 @@ require "zeitwerk"
 module Codeball
   LOADER = Zeitwerk::Loader.for_gem
   LOADER.inflector.inflect("cli" => "CLI")
+  LOADER.ignore("#{__dir__}/command_kit")
   LOADER.setup
 
   # CLI requires command_kit gem - only load if available

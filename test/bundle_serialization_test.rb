@@ -10,15 +10,17 @@ class BundleSerializationTest < Minitest::Test
     FileUtils.rm_rf(@tmpdir)
   end
 
-  def test_serialize_produces_bordered_output
-    entry = Codeball::Entry.new(path: "test.txt", contents: "hello")
-    bundle = Codeball::Bundle.new([entry], config: @config)
-
-    output = capture_io { bundle.serialize }.first
+  def test_serialize_includes_border_and_content
+    output = serialize_entry(path: "test.txt", contents: "hello")
 
     assert_includes output, @config.full_border
-    assert_includes output, 'BEGIN "test.txt"'
     assert_includes output, "hello"
+  end
+
+  def test_serialize_includes_begin_and_end_markers
+    output = serialize_entry(path: "test.txt", contents: "hello")
+
+    assert_includes output, 'BEGIN "test.txt"'
     assert_includes output, 'END "test.txt"'
   end
 
@@ -32,17 +34,16 @@ class BundleSerializationTest < Minitest::Test
     assert_includes output, 'END "empty.txt"'
   end
 
-  def test_serialize_multiple_files_separated
-    entries = [
-      Codeball::Entry.new(path: "a.txt", contents: "aaa"),
-      Codeball::Entry.new(path: "b.txt", contents: "bbb"),
-    ]
-    bundle = Codeball::Bundle.new(entries, config: @config)
-
-    output = capture_io { bundle.serialize }.first
+  def test_serialize_multiple_files_includes_first_entry_markers
+    output = serialize_multiple_files
 
     assert_includes output, 'BEGIN "a.txt"'
     assert_includes output, 'END "a.txt"'
+  end
+
+  def test_serialize_multiple_files_includes_second_entry_markers
+    output = serialize_multiple_files
+
     assert_includes output, 'BEGIN "b.txt"'
     assert_includes output, 'END "b.txt"'
   end
@@ -86,5 +87,22 @@ class BundleSerializationTest < Minitest::Test
       refute_includes output, 'BEGIN "image.png"'
       refute output.end_with?("\n\n"), "Should not have trailing blank line after last entry"
     end
+  end
+
+  private
+
+  def serialize_entry(path:, contents:)
+    entry = Codeball::Entry.new(path: path, contents: contents)
+    bundle = Codeball::Bundle.new([entry], config: @config)
+    capture_io { bundle.serialize }.first
+  end
+
+  def serialize_multiple_files
+    entries = [
+      Codeball::Entry.new(path: "a.txt", contents: "aaa"),
+      Codeball::Entry.new(path: "b.txt", contents: "bbb"),
+    ]
+    bundle = Codeball::Bundle.new(entries, config: @config)
+    capture_io { bundle.serialize }.first
   end
 end

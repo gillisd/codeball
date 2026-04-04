@@ -37,27 +37,38 @@ module Codeball
       ]
 
       def run(file = nil)
-        config = Config.new(
+        config = build_config
+        input = read_input(file)
+        bundle = Bundle.parse(input, config: config)
+
+        print_parse_warnings(bundle.parse_errors)
+
+        summary = bundle.extract
+        print_results(summary.results, config.dry_run)
+        print_summary(summary, config.dry_run)
+      end
+
+      private
+
+      def build_config
+        Config.new(
           border: options[:border],
           border_width: options[:border_width],
         )
+      end
 
+      def read_input(file)
         ARGV.replace(file ? [file] : [])
         input = ARGF.read
 
         print_error "no input" if input.nil? || input.strip.empty?
+        input
+      end
 
-        bundle = Bundle.parse(input, config: config)
-
-        # Print parse warnings
-        bundle.parse_errors.each do |msg|
+      def print_parse_warnings(errors)
+        errors.each do |msg|
           stderr.puts colors.yellow("warning: #{msg}")
         end
-
-        # Extract and print results
-        summary = bundle.extract
-        print_results(summary.results, config.dry_run)
-        print_summary(summary, config.dry_run)
       end
     end
   end

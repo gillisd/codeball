@@ -16,68 +16,56 @@ class RoundTripTest < Minitest::Test
   end
 
   def test_round_trip_single_file
-    original = Codeball::Entry.new(path: "test.txt", contents: "hello world")
-    bundle = Codeball::Bundle.new([original], config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+    parsed = round_trip_entries(
+      Codeball::Entry.new(path: "test.txt", contents: "hello world"),
+    )
 
     assert_equal 1, parsed.entries.length
     assert_equal "test.txt", parsed.entries.first.path
     assert_equal "hello world", parsed.entries.first.contents
   end
 
-  def test_round_trip_multiple_files
-    originals = [
-      Codeball::Entry.new(path: "a.txt", contents: "aaa"),
-      Codeball::Entry.new(path: "b.txt", contents: "bbb"),
-      Codeball::Entry.new(path: "c.txt", contents: "ccc"),
-    ]
-    bundle = Codeball::Bundle.new(originals, config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+  def test_round_trip_multiple_files_count
+    parsed = round_trip_multiple_entries
 
     assert_equal 3, parsed.entries.length
+  end
+
+  def test_round_trip_multiple_files_contents
+    parsed = round_trip_multiple_entries
+
     assert_equal "aaa", parsed.entries[0].contents
     assert_equal "bbb", parsed.entries[1].contents
     assert_equal "ccc", parsed.entries[2].contents
   end
 
   def test_round_trip_empty_file
-    original = Codeball::Entry.new(path: "empty.txt", contents: "")
-    bundle = Codeball::Bundle.new([original], config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+    parsed = round_trip_entries(
+      Codeball::Entry.new(path: "empty.txt", contents: ""),
+    )
 
     assert_equal 1, parsed.entries.length
     assert_empty parsed.entries.first.contents
   end
 
-  def test_round_trip_empty_file_among_nonempty
-    originals = [
-      Codeball::Entry.new(path: "before.txt", contents: "before"),
-      Codeball::Entry.new(path: "empty.txt", contents: ""),
-      Codeball::Entry.new(path: "after.txt", contents: "after"),
-    ]
-    bundle = Codeball::Bundle.new(originals, config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+  def test_round_trip_empty_file_among_nonempty_count
+    parsed = round_trip_mixed_empty_entries
 
     assert_equal 3, parsed.entries.length
+  end
+
+  def test_round_trip_empty_file_among_nonempty_contents
+    parsed = round_trip_mixed_empty_entries
+
     assert_equal "before", parsed.entries[0].contents
     assert_empty parsed.entries[1].contents
     assert_equal "after", parsed.entries[2].contents
   end
 
   def test_round_trip_nested_paths
-    original = Codeball::Entry.new(path: "a/b/c/deep.txt", contents: "deep")
-    bundle = Codeball::Bundle.new([original], config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+    parsed = round_trip_entries(
+      Codeball::Entry.new(path: "a/b/c/deep.txt", contents: "deep"),
+    )
 
     assert_equal "a/b/c/deep.txt", parsed.entries.first.path
   end
@@ -89,63 +77,101 @@ class RoundTripTest < Minitest::Test
       output_dir: @tmpdir,
       dry_run: false,
     )
-    original = Codeball::Entry.new(path: "test.txt", contents: "custom border")
-    bundle = Codeball::Bundle.new([original], config: custom_config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: custom_config)
+    parsed = round_trip_entries(
+      Codeball::Entry.new(path: "test.txt", contents: "custom border"),
+      config: custom_config,
+    )
 
     assert_equal "custom border", parsed.entries.first.contents
   end
 
   def test_round_trip_multiline_content
-    content = "line 1\nline 2\nline 3\n"
-    original = Codeball::Entry.new(path: "multi.txt", contents: content)
-    bundle = Codeball::Bundle.new([original], config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+    content = "first\nsecond\nthird\n"
+    parsed = round_trip_entries(
+      Codeball::Entry.new(path: "multi.txt", contents: content),
+    )
 
     assert_equal content, parsed.entries.first.contents
   end
 
   def test_round_trip_content_with_special_characters
     content = "tabs\there\nnewlines\n\nand 'quotes' and \"double quotes\""
-    original = Codeball::Entry.new(path: "special.txt", contents: content)
-    bundle = Codeball::Bundle.new([original], config: @config)
-
-    serialized = capture_io { bundle.serialize }.first
-    parsed = Codeball::Bundle.parse(serialized, config: @config)
+    parsed = round_trip_entries(
+      Codeball::Entry.new(path: "special.txt", contents: content),
+    )
 
     assert_equal content, parsed.entries.first.contents
   end
 
   def test_full_round_trip_to_disk
-    source_dir = File.join(@tmpdir, "source")
-    dest_dir = File.join(@tmpdir, "dest")
-    Dir.mkdir(source_dir)
-    Dir.mkdir(dest_dir)
+    source_dir = create_source_files
+    dest_dir = create_dest_dir
+    serialized = serialize_from_directory(source_dir)
+    extract_to_directory(serialized, dest_dir)
 
+    assert_files_match(source_dir, dest_dir)
+  end
+
+  private
+
+  def round_trip_entries(*entries, config: @config)
+    bundle = Codeball::Bundle.new(entries, config: config)
+    serialized = capture_io { bundle.serialize }.first
+    Codeball::Bundle.parse(serialized, config: config)
+  end
+
+  def round_trip_multiple_entries
+    round_trip_entries(
+      Codeball::Entry.new(path: "a.txt", contents: "aaa"),
+      Codeball::Entry.new(path: "b.txt", contents: "bbb"),
+      Codeball::Entry.new(path: "c.txt", contents: "ccc"),
+    )
+  end
+
+  def round_trip_mixed_empty_entries
+    round_trip_entries(
+      Codeball::Entry.new(path: "before.txt", contents: "before"),
+      Codeball::Entry.new(path: "empty.txt", contents: ""),
+      Codeball::Entry.new(path: "after.txt", contents: "after"),
+    )
+  end
+
+  def create_source_files
+    source_dir = File.join(@tmpdir, "source")
+    Dir.mkdir(source_dir)
     File.write(File.join(source_dir, "a.txt"), "content a")
     File.write(File.join(source_dir, "b.txt"), "content b")
     FileUtils.touch(File.join(source_dir, "empty.txt"))
+    source_dir
+  end
 
+  def create_dest_dir
+    dest_dir = File.join(@tmpdir, "dest")
+    Dir.mkdir(dest_dir)
+    dest_dir
+  end
+
+  def serialize_from_directory(source_dir)
     Dir.chdir(source_dir) do
       files = Dir.glob("*")
       bundle = Codeball::Bundle.from_files(files, config: @config)
-      @serialized = capture_io { bundle.serialize }.first
+      capture_io { bundle.serialize }.first
     end
+  end
 
+  def extract_to_directory(serialized, dest_dir)
     dest_config = Codeball::Config.new(
       border: @config.border,
       border_width: @config.border_width,
       output_dir: dest_dir,
       dry_run: false,
     )
-    parsed = Codeball::Bundle.parse(@serialized, config: dest_config)
+    parsed = Codeball::Bundle.parse(serialized, config: dest_config)
     capture_io { parsed.extract }
+  end
 
-    %w[a.txt b.txt empty.txt].each do |basename|
+  def assert_files_match(source_dir, dest_dir)
+    ["a.txt", "b.txt", "empty.txt"].each do |basename|
       original = File.read(File.join(source_dir, basename))
       extracted = File.read(File.join(dest_dir, basename))
 
