@@ -77,19 +77,6 @@ RSpec.describe "codeball pack | unpack round trip", type: :integration do
     end
   end
 
-  describe "with custom border options" do
-    let(:content) { "custom border test\n" }
-
-    before { create_file("bordered.txt", content) }
-
-    it "round-trips correctly with matching border args on both sides" do
-      pack_result = run_codeball("pack", "--border", "###", "--border-width", "5", "bordered.txt")
-      run_codeball("unpack", "--border", "###", "--border-width", "5", stdin: pack_result.stdout)
-
-      expect(read_output_file("bordered.txt")).to eq(content)
-    end
-  end
-
   describe "pack to file, then unpack from file" do
     let(:content) { "file-based round trip\n" }
 

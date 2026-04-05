@@ -65,7 +65,7 @@ module Codeball
     def parse_warning_count = parse_warnings.length
 
     def serialize
-      entries.select(&:text?).map { |e| e.serialize(Border::SEPARATOR) }.join
+      entries.select(&:text?).map(&:serialize).join
     end
 
     private

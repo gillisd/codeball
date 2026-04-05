@@ -47,8 +47,7 @@ RSpec.describe "codeball help", type: :integration do
 
     it "prints pack usage with options and examples" do
       expect(result.stdout).to include("Usage: codeball pack")
-      expect(result.stdout).to include("--border")
-      expect(result.stdout).to include("--border-width")
+      expect(result.stdout).to include("--quiet")
       expect(result.stdout).to include("Examples:")
     end
   end
@@ -56,9 +55,8 @@ RSpec.describe "codeball help", type: :integration do
   describe "codeball list --help" do
     let(:result) { run_codeball("list", "--help") }
 
-    it "prints list usage with options" do
+    it "prints list usage" do
       expect(result.stdout).to include("Usage: codeball list")
-      expect(result.stdout).to include("--show-border")
     end
   end
 

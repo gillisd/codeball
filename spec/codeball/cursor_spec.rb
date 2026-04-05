@@ -3,7 +3,7 @@ require "codeball"
 RSpec.describe Codeball::Cursor do
   let(:hello_entry) { Codeball::Entry.new(path: "hello.rb", contents: "puts \"hello\"\n") }
   let(:greet_entry) { Codeball::Entry.new(path: "lib/greet.rb", contents: "def greet\n  \"hi\"\nend\n") }
-  let(:ball_text) { hello_entry.serialize(Codeball::Border::SEPARATOR) + greet_entry.serialize(Codeball::Border::SEPARATOR) }
+  let(:ball_text) { hello_entry.serialize + greet_entry.serialize }
   let(:cursor) { described_class.new(ball_text) }
 
   describe "#finished?" do
@@ -136,7 +136,7 @@ RSpec.describe Codeball::Cursor do
 
     context "with an empty entry" do
       let(:empty_ball) do
-        Codeball::Entry.new(path: "empty.txt", contents: "").serialize(Codeball::Border::SEPARATOR)
+        Codeball::Entry.new(path: "empty.txt", contents: "").serialize
       end
       let(:cursor) { described_class.new(empty_ball) }
 

@@ -4,7 +4,7 @@ RSpec.describe Codeball::Ball do
   let(:hello_entry) { Codeball::Entry.new(path: "hello.rb", contents: "puts \"hello\"\n") }
   let(:greet_entry) { Codeball::Entry.new(path: "lib/greet.rb", contents: "def greet\n  \"hi\"\nend\n") }
   let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
-  let(:ball_text) { hello_entry.serialize(Codeball::Border::SEPARATOR) + greet_entry.serialize(Codeball::Border::SEPARATOR) }
+  let(:ball_text) { hello_entry.serialize + greet_entry.serialize }
 
   describe ".parse" do
     context "with valid two-entry codeball text" do
@@ -46,9 +46,9 @@ RSpec.describe Codeball::Ball do
 
     context "with one valid entry and one truncated entry" do
       let(:truncated_text) do
-        border = Codeball::Border::SEPARATOR
-        valid = hello_entry.serialize(border)
-        incomplete = "#{border}\nBEGIN \"orphan.rb\"\n#{border}\norphan content\n"
+        sep = Codeball::Border::SEPARATOR
+        valid = hello_entry.serialize
+        incomplete = "#{sep}\nBEGIN \"orphan.rb\"\n#{sep}\norphan content\n"
         valid + incomplete
       end
       let(:ball) { described_class.parse(truncated_text) }

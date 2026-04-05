@@ -103,16 +103,6 @@ RSpec.describe "codeball pack", type: :integration do
     end
   end
 
-  describe "with --border and --border-width" do
-    it "uses the custom border in output" do
-      path = create_file("custom.txt", "content\n")
-      result = run_codeball("pack", "--border", "###", "--border-width", "5", path)
-
-      expect(result.stdout).to include("###" * 5)
-      expect(result.stdout).not_to include("---\t")
-    end
-  end
-
   describe "with --quiet" do
     it "suppresses warnings to stderr" do
       binary_path = create_binary_file("quiet.png")

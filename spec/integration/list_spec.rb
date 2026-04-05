@@ -34,15 +34,6 @@ RSpec.describe "codeball list", type: :integration do
     end
   end
 
-  describe "with --show-border" do
-    let(:bundle_text) { pack_bundle(["app.rb", "x = 1\n"]) }
-    let(:result) { run_codeball("list", "-b", stdin: bundle_text) }
-
-    it "prints the detected border pattern" do
-      expect(result.stdout).to include("border")
-    end
-  end
-
   describe "with empty input" do
     let(:result) { run_codeball("list", stdin: "") }
 
