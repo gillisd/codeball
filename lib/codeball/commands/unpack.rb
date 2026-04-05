@@ -3,21 +3,13 @@ require "command_kit/colors"
 
 module Codeball
   module Commands
-    # Extract files from a codeball bundle.
+    # Extract files from a codeball.
     #
     class Unpack < CommandKit::Commands::Command
       include CommandKit::Colors
 
       usage "[options] [FILE]"
-      description "Extract files from a bundle"
-
-      option :border, short: "-b",
-                      value: { type: String, default: "---\t" },
-                      desc: "Border pattern"
-
-      option :border_width, short: "-w",
-                            value: { type: Integer, default: 10 },
-                            desc: "Border repetitions"
+      description "Extract files from a codeball"
 
       option :output_dir, short: "-o",
                           value: { type: String, default: "." },
@@ -29,7 +21,7 @@ module Codeball
       option :quiet, short: "-q", long: "--quiet", desc: "Suppress non-error output"
 
       argument :file, required: false,
-                      desc: "Bundle file (or stdin if omitted)"
+                      desc: "Codeball file (or stdin if omitted)"
 
       examples [
         "bundle.txt",
@@ -39,27 +31,18 @@ module Codeball
       ]
 
       def run(file = nil)
-        config = build_config
         input = read_input(file)
-        bundle = Bundle.parse(input, config: config)
+        ball = Ball.parse(input)
+        options => { output_dir:, dry_run: }
+        dest = Destination.new(output_dir, dry_run:)
 
-        print_parse_warnings(bundle.parse_errors)
+        ball.each_parse_warning { |msg| warn colors.yellow("warning: #{msg}") }
+        ball.each_entry { |entry| dest.write(entry) { |outcome| print_outcome(outcome) } }
 
-        summary = bundle.extract
-        print_results(summary.results, config.dry_run)
-        print_summary(summary, config.dry_run)
+        print_summary(dest.summary(malformed: ball.parse_warning_count))
       end
 
       private
-
-      def build_config
-        Config.new(
-          border: options[:border],
-          border_width: options[:border_width],
-          output_dir: options[:output_dir],
-          dry_run: options[:dry_run] || false,
-        )
-      end
 
       def read_input(file)
         ARGV.replace(file ? [file] : [])
@@ -76,12 +59,6 @@ module Codeball
         exit 1
       end
 
-      def print_parse_warnings(errors)
-        errors.each do |msg|
-          warn colors.yellow("warning: #{msg}")
-        end
-      end
-
       def puts(...)
         return if options[:quiet]
 
@@ -94,37 +71,33 @@ module Codeball
         stderr.puts(...)
       end
 
-      def print_results(results, dry_run)
-        results.each { |result| print_single_result(result, dry_run) }
-      end
-
-      def print_single_result(result, _dry_run)
-        case result.status
-        when :written  then print_written(result)
-        when :dry_run  then print_dry_run(result)
-        when :unsafe   then print_unsafe(result)
-        when :failed   then print_failed(result)
+      def print_outcome(outcome)
+        case outcome.status
+        when :written then print_written(outcome)
+        when :dry_run then print_dry_run(outcome)
+        when :unsafe  then print_unsafe(outcome)
+        when :failed  then print_failed(outcome)
         end
       end
 
-      def print_written(result)
-        puts "#{colors.green("wrote")}: #{result.path} (#{result.line_count} lines)"
+      def print_written(outcome)
+        puts "#{colors.green("wrote")}: #{outcome.path} (#{outcome.line_count} lines)"
       end
 
-      def print_dry_run(result)
-        puts "#{colors.cyan("[dry-run]")} would write: #{result.path} (#{result.line_count} lines)"
+      def print_dry_run(outcome)
+        puts "#{colors.cyan("[dry-run]")} would write: #{outcome.path} (#{outcome.line_count} lines)"
       end
 
-      def print_unsafe(result)
-        warn colors.yellow("warning: skipping unsafe path #{result.path.inspect}")
+      def print_unsafe(outcome)
+        warn colors.yellow("warning: skipping unsafe path #{outcome.path.inspect}")
       end
 
-      def print_failed(result)
-        warn colors.red("error: #{result.path}: #{result.error}")
+      def print_failed(outcome)
+        warn colors.red("error: #{outcome.path}: #{outcome.error}")
       end
 
-      def print_summary(summary, dry_run)
-        prefix = dry_run ? "#{colors.cyan("[dry-run]")} " : ""
+      def print_summary(summary)
+        prefix = summary.results.any? { |r| r.status == :dry_run } ? "#{colors.cyan("[dry-run]")} " : ""
         puts "---"
         puts "#{prefix}#{summary_parts(summary).join(", ")}"
       end
