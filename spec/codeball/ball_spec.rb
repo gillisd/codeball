@@ -3,6 +3,7 @@ require "codeball"
 RSpec.describe Codeball::Ball do
   let(:hello_entry) { Codeball::Entry.new(path: "hello.rb", contents: "puts \"hello\"\n") }
   let(:greet_entry) { Codeball::Entry.new(path: "lib/greet.rb", contents: "def greet\n  \"hi\"\nend\n") }
+  let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
   let(:ball_text) { hello_entry.serialize(Codeball::Border::SEPARATOR) + greet_entry.serialize(Codeball::Border::SEPARATOR) }
 
   describe ".parse" do
@@ -110,7 +111,6 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_text_entry" do
-    let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
     let(:ball) { described_class.new([hello_entry, binary_entry]) }
 
     it "yields only the text entry" do
@@ -121,7 +121,6 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_non_text_entry" do
-    let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
     let(:ball) { described_class.new([hello_entry, binary_entry]) }
 
     it "yields only the binary entry" do

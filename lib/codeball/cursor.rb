@@ -21,10 +21,6 @@ module Codeball
       lines[position]&.strip
     end
 
-    def raw_line
-      lines[position]
-    end
-
     def advance
       @position += 1
     end
@@ -64,7 +60,13 @@ module Codeball
 
     attr_reader :lines, :position
 
+    def raw_line
+      lines[position]
+    end
+
     def previous_line
+      return nil unless position.positive?
+
       lines[position - 1]&.strip
     end
 
