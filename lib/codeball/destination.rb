@@ -7,6 +7,8 @@ module Codeball
   # codeball entries. It owns path safety validation, parent directory
   # creation, and dry-run simulation.
   #
+  # Tracks outcomes internally and provides a summary when asked.
+  #
   class Destination
     DANGEROUS_PATTERNS = [
       /\A\.\./,
@@ -17,14 +19,28 @@ module Codeball
 
     attr_reader :output_dir
 
-    def initialize(output_dir, dry_run: false)
+    def initialize(output_dir = ".", dry_run: false)
       @output_dir = Pathname.new(output_dir).expand_path
       @dry_run = dry_run
+      @results = []
     end
 
     def dry_run? = @dry_run
 
     def write(entry)
+      outcome = write_entry(entry)
+      @results << outcome
+      yield outcome if block_given?
+      outcome
+    end
+
+    def summary(malformed: 0)
+      ExtractionSummary.new(@results, malformed: malformed)
+    end
+
+    private
+
+    def write_entry(entry)
       return unsafe_result(entry) unless safe_path?(entry.path)
 
       resolved = resolve(entry.path)
@@ -32,8 +48,6 @@ module Codeball
     rescue SystemCallError => e
       ExtractionResult.new(path: entry.path, error: e.message, status: :failed)
     end
-
-    private
 
     def safe_path?(path)
       return false if DANGEROUS_PATTERNS.any? { |pattern| path.match?(pattern) }

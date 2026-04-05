@@ -13,7 +13,7 @@ module Codeball
       entries, errors = extract_entries(cursor)
       validate_entries(entries, errors)
 
-      new(entries, parse_errors: errors)
+      new(entries, parse_warnings: errors)
     end
 
     def self.extract_entries(cursor)
@@ -51,18 +51,18 @@ module Codeball
     end
     private_class_method :validate_entries
 
-    def initialize(entries, parse_errors: [])
+    def initialize(entries, parse_warnings: [])
       @entries = entries.freeze
-      @parse_errors = parse_errors.freeze
+      @parse_warnings = parse_warnings.freeze
     end
 
     def each_entry(&) = entries.each(&)
     def each_text_entry(&) = entries.select(&:text?).each(&)
     def each_non_text_entry(&) = entries.reject(&:text?).each(&)
-    def each_parse_error(&) = parse_errors.each(&)
+    def each_parse_warning(&) = parse_warnings.each(&)
 
     def all_text? = entries.all?(&:text?)
-    def parse_error_count = parse_errors.length
+    def parse_warning_count = parse_warnings.length
 
     def serialize
       entries.select(&:text?).map { |e| e.serialize(Border::SEPARATOR) }.join
@@ -70,6 +70,6 @@ module Codeball
 
     private
 
-    attr_reader :entries, :parse_errors
+    attr_reader :entries, :parse_warnings
   end
 end

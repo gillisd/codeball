@@ -161,6 +161,23 @@ RSpec.describe Codeball::Destination do
       end
     end
 
+    it "yields the outcome to a block" do
+      yielded = nil
+      destination.write(hello_entry) { |outcome| yielded = outcome }
+      expect(yielded.status).to eq(:written)
+    end
+  end
+
+  describe "#summary" do
+    it "aggregates write outcomes" do
+      destination.write(hello_entry)
+      summary = destination.summary(malformed: 1)
+      expect(summary.extracted).to eq(1)
+      expect(summary.malformed).to eq(1)
+    end
+  end
+
+  describe "#write" do
     context "overwriting an existing file" do
       let(:new_entry) { Codeball::Entry.new(path: "hello.rb", contents: "new content\n") }
 

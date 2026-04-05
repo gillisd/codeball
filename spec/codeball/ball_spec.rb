@@ -14,8 +14,8 @@ RSpec.describe Codeball::Ball do
         expect(ball).to be_a(described_class)
       end
 
-      it "has no parse errors" do
-        expect(ball.parse_error_count).to eq(0)
+      it "has no parse warnings" do
+        expect(ball.parse_warning_count).to eq(0)
       end
     end
 
@@ -59,13 +59,13 @@ RSpec.describe Codeball::Ball do
         expect(paths).to eq(["hello.rb"])
       end
 
-      it "has one parse error" do
-        expect(ball.parse_error_count).to eq(1)
+      it "has one parse warning" do
+        expect(ball.parse_warning_count).to eq(1)
       end
 
       it "reports the truncation" do
         errors = []
-        ball.each_parse_error { |msg| errors << msg }
+        ball.each_parse_warning { |msg| errors << msg }
         expect(errors.first).to include("truncated")
       end
     end
@@ -130,12 +130,12 @@ RSpec.describe Codeball::Ball do
     end
   end
 
-  describe "#each_parse_error" do
-    let(:ball) { described_class.new([hello_entry], parse_errors: ["truncated entry for \"orphan.rb\""]) }
+  describe "#each_parse_warning" do
+    let(:ball) { described_class.new([hello_entry], parse_warnings: ["truncated entry for \"orphan.rb\""]) }
 
     it "yields the error message" do
       errors = []
-      ball.each_parse_error { |msg| errors << msg }
+      ball.each_parse_warning { |msg| errors << msg }
       expect(errors).to eq(["truncated entry for \"orphan.rb\""])
     end
   end
@@ -159,20 +159,20 @@ RSpec.describe Codeball::Ball do
     end
   end
 
-  describe "#parse_error_count" do
+  describe "#parse_warning_count" do
     context "with no parse errors" do
       let(:ball) { described_class.new([hello_entry]) }
 
       it "returns 0" do
-        expect(ball.parse_error_count).to eq(0)
+        expect(ball.parse_warning_count).to eq(0)
       end
     end
 
     context "with two parse errors" do
-      let(:ball) { described_class.new([hello_entry], parse_errors: ["error one", "error two"]) }
+      let(:ball) { described_class.new([hello_entry], parse_warnings: ["error one", "error two"]) }
 
       it "returns 2" do
-        expect(ball.parse_error_count).to eq(2)
+        expect(ball.parse_warning_count).to eq(2)
       end
     end
   end
