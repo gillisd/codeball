@@ -65,7 +65,7 @@ module Codeball
     def parse_error_count = parse_errors.length
 
     def serialize
-      entries.select(&:text?).map(&:serialize).join
+      entries.select(&:text?).map { |e| e.serialize(Border::SEPARATOR) }.join
     end
 
     private

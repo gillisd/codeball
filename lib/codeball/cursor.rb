@@ -33,7 +33,7 @@ module Codeball
       return false unless current_line&.start_with?("BEGIN ")
       return false unless position.positive?
 
-      Border.recognize?(lines[position - 1].strip)
+      Border.recognize?(previous_line)
     end
 
     def marker_path
@@ -59,6 +59,14 @@ module Codeball
 
     attr_reader :lines, :position
 
+    def previous_line
+      lines[position - 1]&.strip
+    end
+
+    def peek_line
+      lines[position + 1]&.strip
+    end
+
     def at_end_marker?(path)
       stripped = current_line
 
@@ -82,10 +90,10 @@ module Codeball
     end
 
     def next_line_is_end_marker?(path)
-      return false unless position + 1 < lines.length
+      peeked = peek_line
+      return false unless peeked
 
-      next_stripped = lines[position + 1].strip
-      next_stripped.start_with?("END ") && extract_path(next_stripped) == path
+      peeked.start_with?("END ") && extract_path(peeked) == path
     end
 
     def extract_path(line)
