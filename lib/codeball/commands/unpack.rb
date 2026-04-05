@@ -31,10 +31,8 @@ module Codeball
       ]
 
       def run(file = nil)
-        input = read_input(file)
-        ball = Ball.parse(input)
-        options => { output_dir:, dry_run: }
-        dest = Destination.new(output_dir, dry_run:)
+        ball = Ball.parse(read_input(file))
+        dest = build_destination
 
         ball.each_parse_warning { |msg| warn colors.yellow("warning: #{msg}") }
         ball.each_entry { |entry| dest.write(entry) { |outcome| print_outcome(outcome) } }
@@ -43,6 +41,10 @@ module Codeball
       end
 
       private
+
+      def build_destination
+        Destination.new(options[:output_dir], dry_run: options[:dry_run])
+      end
 
       def read_input(file)
         ARGV.replace(file ? [file] : [])
@@ -97,7 +99,7 @@ module Codeball
       end
 
       def print_summary(summary)
-        prefix = summary.results.any? { |r| r.status == :dry_run } ? "#{colors.cyan("[dry-run]")} " : ""
+        prefix = summary.dry_run? ? "#{colors.cyan("[dry-run]")} " : ""
         puts "---"
         puts "#{prefix}#{summary_parts(summary).join(", ")}"
       end

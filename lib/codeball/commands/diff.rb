@@ -41,8 +41,10 @@ module Codeball
         ARGV.replace(file ? [file] : [])
         input = ARGF.read
 
-        print_error "no input" if input.nil? || input.strip.empty?
-        input
+        return input unless input.nil? || input.strip.empty?
+
+        print_error "no input"
+        exit 1
       end
     end
   end

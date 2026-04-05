@@ -21,7 +21,7 @@ module Codeball
 
     def initialize(output_dir = ".", dry_run: false)
       @output_dir = Pathname.new(output_dir).expand_path
-      @dry_run = dry_run
+      @dry_run = dry_run ? true : false
       @results = []
     end
 
