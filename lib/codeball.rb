@@ -2,10 +2,10 @@ require "warning"
 require "zeitwerk"
 
 ##
-# Bidirectional file bundler for clipboard-friendly LLM workflows.
+# Bidirectional file packer for clipboard-friendly LLM workflows.
 #
-# Packs multiple source files into a single plaintext bundle and extracts
-# them back to disk.  Uses Zeitwerk for autoloading.
+# Packs multiple source files into a single plaintext codeball and extracts
+# them back to disk. Uses Zeitwerk for autoloading.
 module Codeball
   LOADER = Zeitwerk::Loader.for_gem
   LOADER.inflector.inflect("cli" => "CLI")

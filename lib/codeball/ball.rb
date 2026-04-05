@@ -46,7 +46,7 @@ module Codeball
       if entries.empty? && errors.any?
         raise MalformedBallError, "no valid entries found (#{errors.length} malformed)"
       elsif entries.empty?
-        raise MalformedBallError, "no content found - is this a codeball bundle?"
+        raise MalformedBallError, "no content found - is this a codeball?"
       end
     end
     private_class_method :validate_entries

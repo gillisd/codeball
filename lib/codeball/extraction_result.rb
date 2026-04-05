@@ -1,5 +1,5 @@
 module Codeball
-  # Represents the outcome of extracting a single entry from a bundle.
+  # Represents the outcome of extracting a single entry from a codeball.
   #
   # ## Example
   #

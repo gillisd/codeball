@@ -168,7 +168,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#parse_warning_count" do
-    context "with no parse errors" do
+    context "with no parse warnings" do
       let(:ball) { described_class.new([hello_entry]) }
 
       it "returns 0" do
@@ -176,7 +176,7 @@ RSpec.describe Codeball::Ball do
       end
     end
 
-    context "with two parse errors" do
+    context "with two parse warnings" do
       let(:ball) { described_class.new([hello_entry], parse_warnings: ["error one", "error two"]) }
 
       it "returns 2" do
