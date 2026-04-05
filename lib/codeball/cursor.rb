@@ -21,6 +21,10 @@ module Codeball
       lines[position]&.strip
     end
 
+    def raw_line
+      lines[position]
+    end
+
     def advance
       @position += 1
     end
@@ -44,11 +48,12 @@ module Codeball
     def read_content_until_end(path)
       advance
       skip_borders
-      content_start = position
+      collected = []
 
       until finished?
-        return extract_content(content_start) if at_end_marker?(path)
+        return collected.join if at_end_marker?(path)
 
+        collected << raw_line
         advance
       end
 
@@ -100,13 +105,6 @@ module Codeball
       rewritten = line.sub(/\AEND/, "BEGIN")
       match = rewritten.match(MARKER_PATTERN)
       match[1] if match
-    end
-
-    def extract_content(content_start)
-      content_end = position - 1
-      return "" if content_end < content_start
-
-      Border.strip_suffix(lines[content_start..content_end].join)
     end
   end
 end
