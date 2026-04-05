@@ -47,7 +47,7 @@ module Codeball
       collected = []
 
       until finished?
-        return collected.join if at_end_marker?(path)
+        return Border.strip_suffix(collected.join) if at_end_marker?(path)
 
         collected << raw_line
         advance
