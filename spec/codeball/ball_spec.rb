@@ -3,7 +3,11 @@ require "codeball"
 RSpec.describe Codeball::Ball do
   let(:hello_entry) { Codeball::Entry.new(path: "hello.rb", contents: "puts \"hello\"\n") }
   let(:greet_entry) { Codeball::Entry.new(path: "lib/greet.rb", contents: "def greet\n  \"hi\"\nend\n") }
-  let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
+  let(:binary_entry) do
+    Codeball::Entry.new(path: "image.png", contents: "binary").tap do |e|
+      allow(e).to receive(:text?).and_return(false)
+    end
+  end
   let(:ball_text) { hello_entry.serialize + greet_entry.serialize }
 
   describe ".parse" do
@@ -150,7 +154,11 @@ RSpec.describe Codeball::Ball do
     end
 
     context "when any entry is binary" do
-      let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
+      let(:binary_entry) do
+        Codeball::Entry.new(path: "image.png", contents: "binary").tap do |e|
+          allow(e).to receive(:text?).and_return(false)
+        end
+      end
       let(:ball) { described_class.new([hello_entry, binary_entry]) }
 
       it "returns false" do
@@ -191,7 +199,11 @@ RSpec.describe Codeball::Ball do
     end
 
     context "with a binary entry among text entries" do
-      let(:binary_entry) { Codeball::Entry.new(path: "image.png", contents: "\x89PNG\r\n\x1A\n") }
+      let(:binary_entry) do
+        Codeball::Entry.new(path: "image.png", contents: "binary").tap do |e|
+          allow(e).to receive(:text?).and_return(false)
+        end
+      end
       let(:ball) { described_class.new([hello_entry, binary_entry]) }
 
       it "does not include the binary entry" do
