@@ -1,112 +1,112 @@
 module Codeball
-  # A position in codeball-formatted text.
+  # A lexer for codeball-formatted text.
   #
-  # Cursor wraps a sequence of lines and an index, providing navigation
-  # through the structural elements of a serialized codeball: borders,
-  # BEGIN/END markers, and file content.
+  # Cursor walks text line by line and classifies each meaningful
+  # element as a typed token: Header, Body, or Footer. Borders are
+  # delimiters consumed internally -- they are never yielded.
+  #
+  # Cursor does not correlate tokens or enforce sequencing.
+  # Stream handles assembly; Entry enforces invariants.
   #
   class Cursor
-    MARKER_PATTERN = /\ABEGIN\s+["']?(.+?)["']?\s*\z/
+    BEGIN_PATTERN = /\ABEGIN\s+["']?(.+?)["']?\s*\z/
+    END_PATTERN = /\AEND\s+["']?(.+?)["']?\s*\z/
+
+    # Sentinel returned when all tokens have been consumed.
+    module EOF; end
 
     def initialize(text)
       @lines = text.lines
       @position = 0
+      @pending_footer = nil
+      @body_lines = nil
     end
 
-    def finished?
-      position >= lines.length
-    end
+    def next_item
+      return emit_footer if @pending_footer
 
-    def current_line
-      lines[position]&.strip
-    end
-
-    def advance
-      @position += 1
-    end
-
-    def skip_borders
-      advance while !finished? && Border.recognize?(current_line)
-    end
-
-    def at_begin_marker?
-      return false unless current_line&.start_with?("BEGIN ")
-      return false unless position.positive?
-
-      Border.recognize?(previous_line)
-    end
-
-    def marker_path
-      match = current_line&.match(MARKER_PATTERN)
-      match[1] if match
-    end
-
-    def read_content_until_end(path)
-      advance
       skip_borders
-      collected = []
+      return EOF if finished?
 
-      until finished?
-        return Border.strip_suffix(collected.join) if at_end_marker?(path)
-
-        collected << raw_line
-        advance
+      if @body_lines
+        read_body
+      else
+        read_header_or_eof
       end
-
-      nil
     end
 
     private
 
     attr_reader :lines, :position
 
-    def raw_line
-      lines[position]
-    end
+    def finished? = position >= lines.length
+    def current_line = lines[position]&.strip
+    def raw_line = lines[position]
 
-    def previous_line
-      return nil unless position.positive?
-
-      lines[position - 1]&.strip
+    def advance
+      @position += 1
     end
 
     def peek_line
       lines[position + 1]&.strip
     end
 
-    def at_end_marker?(path)
-      stripped = current_line
-
-      return true if end_marker_inline?(stripped, path)
-
-      end_marker_after_border?(stripped, path)
+    def skip_borders
+      advance while !finished? && Border.recognize?(current_line)
     end
 
-    def end_marker_inline?(stripped, path)
-      stripped.include?("END \"#{path}\"") ||
-        stripped.include?("END '#{path}'") ||
-        stripped == "END #{path}"
-    end
-
-    def end_marker_after_border?(stripped, path)
-      return false unless Border.recognize?(stripped)
-      return false unless next_line_is_end_marker?(path)
+    def read_header_or_eof
+      match = current_line&.match(BEGIN_PATTERN)
+      return EOF unless match
 
       advance
-      true
+      skip_borders
+      @body_lines = []
+      Header.new(match[1])
     end
 
-    def next_line_is_end_marker?(path)
-      peeked = peek_line
-      return false unless peeked
-
-      peeked.start_with?("END ") && extract_path(peeked) == path
+    def read_body
+      collect_body_lines
+      body = Body.new(Border.strip_suffix(@body_lines.join))
+      @body_lines = nil
+      body
     end
 
-    def extract_path(line)
-      rewritten = line.sub(/\AEND/, "BEGIN")
-      match = rewritten.match(MARKER_PATTERN)
-      match[1] if match
+    def collect_body_lines
+      until finished?
+        return found_end(current_line.match(END_PATTERN)) if end_marker?
+        return found_end_after_border if border_before_end?
+
+        @body_lines << raw_line
+        advance
+      end
+    end
+
+    def end_marker?
+      current_line&.match?(END_PATTERN)
+    end
+
+    def border_before_end?
+      Border.recognize?(current_line) &&
+        peek_line&.match?(END_PATTERN)
+    end
+
+    def found_end(match)
+      @pending_footer = match[1]
+      advance
+    end
+
+    def found_end_after_border
+      advance
+      end_match = current_line.match(END_PATTERN)
+      @pending_footer = end_match[1]
+      advance
+    end
+
+    def emit_footer
+      path = @pending_footer
+      @pending_footer = nil
+      Footer.new(path)
     end
   end
 end

@@ -3,9 +3,17 @@ require "tmpdir"
 require "fileutils"
 
 RSpec.describe Codeball::Destination do
+  def make_entry(path:, contents:)
+    entry = Codeball::Entry.new
+    entry.header = Codeball::Header.new(path)
+    entry.body = Codeball::Body.new(contents)
+    entry.footer = Codeball::Footer.new(path)
+    entry
+  end
+
   let(:tmp_dir) { Dir.mktmpdir("destination-spec") }
   let(:destination) { described_class.new(tmp_dir) }
-  let(:hello_entry) { Codeball::Entry.new(path: "hello.rb", contents: "puts \"hello\"\n") }
+  let(:hello_entry) { make_entry(path: "hello.rb", contents: "puts \"hello\"\n") }
 
   after { FileUtils.rm_rf(tmp_dir) }
 
@@ -41,7 +49,7 @@ RSpec.describe Codeball::Destination do
     end
 
     context "with a nested path" do
-      let(:nested_entry) { Codeball::Entry.new(path: "lib/greet.rb", contents: "def greet; end\n") }
+      let(:nested_entry) { make_entry(path: "lib/greet.rb", contents: "def greet; end\n") }
       let(:result) { destination.write(nested_entry) }
 
       describe "file system" do
@@ -64,7 +72,7 @@ RSpec.describe Codeball::Destination do
     end
 
     context "with an empty entry" do
-      let(:empty_entry) { Codeball::Entry.new(path: "empty.txt", contents: "") }
+      let(:empty_entry) { make_entry(path: "empty.txt", contents: "") }
       let(:result) { destination.write(empty_entry) }
 
       describe "file system" do
@@ -112,7 +120,7 @@ RSpec.describe Codeball::Destination do
     end
 
     context "with an unsafe path starting with .." do
-      let(:unsafe_entry) { Codeball::Entry.new(path: "../escape.txt", contents: "danger\n") }
+      let(:unsafe_entry) { make_entry(path: "../escape.txt", contents: "danger\n") }
 
       it "does NOT create any file" do
         destination.write(unsafe_entry)
@@ -125,7 +133,7 @@ RSpec.describe Codeball::Destination do
     end
 
     context "with an absolute path" do
-      let(:absolute_entry) { Codeball::Entry.new(path: "/etc/passwd", contents: "hacked\n") }
+      let(:absolute_entry) { make_entry(path: "/etc/passwd", contents: "hacked\n") }
 
       it "returns status :unsafe" do
         expect(destination.write(absolute_entry).status).to eq(:unsafe)
@@ -133,7 +141,7 @@ RSpec.describe Codeball::Destination do
     end
 
     context "with a home expansion path" do
-      let(:home_entry) { Codeball::Entry.new(path: "~/evil.txt", contents: "danger\n") }
+      let(:home_entry) { make_entry(path: "~/evil.txt", contents: "danger\n") }
 
       it "returns status :unsafe" do
         expect(destination.write(home_entry).status).to eq(:unsafe)
@@ -141,7 +149,7 @@ RSpec.describe Codeball::Destination do
     end
 
     context "with a path traversal in the middle" do
-      let(:traversal_entry) { Codeball::Entry.new(path: "foo/../../../etc/passwd", contents: "hacked\n") }
+      let(:traversal_entry) { make_entry(path: "foo/../../../etc/passwd", contents: "hacked\n") }
 
       it "returns status :unsafe" do
         expect(destination.write(traversal_entry).status).to eq(:unsafe)
@@ -150,7 +158,7 @@ RSpec.describe Codeball::Destination do
 
     context "when the file write raises a system error" do
       let(:destination) { described_class.new("/dev/null/impossible") }
-      let(:entry) { Codeball::Entry.new(path: "file.txt", contents: "content\n") }
+      let(:entry) { make_entry(path: "file.txt", contents: "content\n") }
 
       it "returns status :failed" do
         expect(destination.write(entry).status).to eq(:failed)
@@ -179,7 +187,7 @@ RSpec.describe Codeball::Destination do
 
   describe "#write" do
     context "overwriting an existing file" do
-      let(:new_entry) { Codeball::Entry.new(path: "hello.rb", contents: "new content\n") }
+      let(:new_entry) { make_entry(path: "hello.rb", contents: "new content\n") }
 
       before { File.write(File.join(tmp_dir, "hello.rb"), "old content") }
 

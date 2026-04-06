@@ -2,36 +2,78 @@ require "pathname"
 require "filemagic"
 
 module Codeball
-  # An in-memory buffer representing a single file within a codeball.
+  # A single file within a codeball.
   #
-  # Entry holds a file path and contents. It knows how to serialize
-  # itself into bordered codeball format and detect whether its
-  # contents are text or binary.
+  # Entry is a state machine with write-once setters for header, body,
+  # and footer. It enforces the Header -> Body -> Footer sequence by
+  # rejecting duplicate assignments and detecting mismatched footers.
+  #
+  # Two construction paths, same invariants:
+  #   1. Token-by-token via Stream (parsing)
+  #   2. All-at-once via Entry.from_file (packing)
   #
   class Entry
-    attr_reader :path, :contents
+    attr_reader :header, :body, :footer, :error
 
     def self.from_file(path)
-      path = Pathname.new(path)
-      return nil unless path.exist? && path.readable?
+      pathname = Pathname.new(path)
+      return nil unless pathname.exist? && pathname.readable?
 
-      new(path: path.to_s, contents: path.read)
+      entry = new
+      name = pathname.to_s
+      entry.header = Header.new(name)
+      entry.body = Body.new(pathname.read)
+      entry.footer = Footer.new(name)
+      entry
     end
 
     def self.magic_client
       @magic_client ||= FileMagic.mime
     end
 
-    def initialize(path:, contents:, magic_client: nil)
-      raise ArgumentError, "Path must be present" if path.nil? || path.strip.empty?
-
-      @path = path
-      @contents = contents
-      @magic_client = magic_client || self.class.magic_client
+    def initialize
+      @header = nil
+      @body = nil
+      @footer = nil
+      @error = nil
+      @magic_client = self.class.magic_client
     end
 
-    def empty? = contents.empty?
-    def byte_size = contents.bytesize
+    def header=(header)
+      if @header
+        @error = "duplicate header: already have #{@header}, received #{header}"
+        return
+      end
+      @header = header
+    end
+
+    def body=(body)
+      if @body
+        @error = "duplicate body for #{path}"
+        return
+      end
+      @body = body
+    end
+
+    def footer=(footer)
+      if @footer
+        @error = "duplicate footer for #{path}"
+        return
+      end
+      @footer = footer
+      @error = "footer #{footer} does not match header #{header}" unless footer_matches_header?
+    end
+
+    def valid? = !!(header && body && footer && !errors? && footer_matches_header?)
+    def incomplete? = !valid? && !errors?
+    def errors? = !error.nil?
+    def truncated? = !!(header && (body.nil? || footer.nil?) && !errors?)
+
+    def path = header&.to_s
+    def contents = body&.to_s
+
+    def empty? = contents&.empty? || contents.nil?
+    def byte_size = contents&.bytesize || 0
 
     def line_count
       return 0 if contents.empty?
@@ -45,17 +87,21 @@ module Codeball
 
     def serialize
       border = Border::SEPARATOR
-      header = "#{border}\nBEGIN #{path.inspect}\n#{border}\n"
-      footer = "#{border}\nEND #{path.inspect}\n#{border}\n"
-      "#{header}#{contents}#{footer}"
+      "#{border}\nBEGIN #{path.inspect}\n#{border}\n#{contents}#{border}\nEND #{path.inspect}\n#{border}\n"
     end
 
     def mime_type
-      @mime_type ||= @magic_client.buffer(@contents)
+      @mime_type ||= @magic_client.buffer(contents)
     end
 
     private
 
     attr_reader :magic_client
+
+    def footer_matches_header?
+      return true unless header && footer
+
+      header.to_s == footer.to_s
+    end
   end
 end

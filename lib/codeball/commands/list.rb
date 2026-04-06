@@ -29,7 +29,7 @@ module Codeball
 
         ball = Ball.parse(input)
 
-        ball.each_parse_warning { |msg| stderr.puts colors.yellow("warning: #{msg}") }
+        ball.each_warning { |msg| stderr.puts colors.yellow("warning: #{msg}") }
 
         rows = []
         ball.each_entry { |e| rows << [e.path, "#{e.line_count} lines"] }

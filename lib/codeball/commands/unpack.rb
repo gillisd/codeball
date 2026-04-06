@@ -34,10 +34,10 @@ module Codeball
         ball = Ball.parse(read_input(file))
         dest = build_destination
 
-        ball.each_parse_warning { |msg| warn colors.yellow("warning: #{msg}") }
+        ball.each_warning { |msg| warn colors.yellow("warning: #{msg}") }
         ball.each_entry { |entry| dest.write(entry) { |outcome| print_outcome(outcome) } }
 
-        print_summary(dest.summary(malformed: ball.parse_warning_count))
+        print_summary(dest.summary(malformed: ball.warning_count))
       end
 
       private

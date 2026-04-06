@@ -23,7 +23,11 @@ module Codeball
 
       def run(*files)
         readable, unreadable = validate_files(files)
-        ball = Ball.new(readable.filter_map { Entry.from_file(it) })
+        ball = Ball.new
+        readable.each do |path|
+          entry = Entry.from_file(path)
+          ball.add_entry(entry) if entry
+        end
 
         warn_skipped(unreadable, ball)
         puts ball.serialize

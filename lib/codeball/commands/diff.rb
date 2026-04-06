@@ -30,7 +30,7 @@ module Codeball
         input = read_input(file)
         ball = Ball.parse(input)
 
-        ball.each_parse_warning { |msg| stderr.puts colors.yellow("warning: #{msg}") }
+        ball.each_warning { |msg| stderr.puts colors.yellow("warning: #{msg}") }
 
         # Diff output not yet implemented
       end

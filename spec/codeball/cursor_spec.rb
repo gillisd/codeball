@@ -1,171 +1,143 @@
 require "codeball"
 
 RSpec.describe Codeball::Cursor do
-  let(:hello_entry) { Codeball::Entry.new(path: "hello.rb", contents: "puts \"hello\"\n") }
-  let(:greet_entry) { Codeball::Entry.new(path: "lib/greet.rb", contents: "def greet\n  \"hi\"\nend\n") }
-  let(:ball_text) { hello_entry.serialize + greet_entry.serialize }
+  let(:hello_content) { "puts 'hello'\n" }
+  let(:greet_content) { "def greet\n  'hi'\nend\n" }
+
+  def serialize_entry(path, contents)
+    border = Codeball::Border::SEPARATOR
+    "#{border}\nBEGIN #{path.inspect}\n#{border}\n#{contents}#{border}\nEND #{path.inspect}\n#{border}\n"
+  end
+
+  let(:ball_text) { serialize_entry("hello.rb", hello_content) + serialize_entry("lib/greet.rb", greet_content) }
   let(:cursor) { described_class.new(ball_text) }
 
-  describe "#finished?" do
-    context "at start of text" do
-      it "returns false" do
-        expect(cursor.finished?).to be false
+  describe "#next_item" do
+    context "at the start of a valid codeball" do
+      let(:first) { cursor.next_item }
+
+      it "returns a Header" do
+        expect(first).to be_a(Codeball::Header)
+      end
+
+      it "the Header wraps hello.rb" do
+        expect(first.to_s).to eq("hello.rb")
       end
     end
 
-    context "after advancing past all lines" do
-      it "returns true" do
-        cursor.advance until cursor.finished?
-        expect(cursor.finished?).to be true
+    context "after a Header" do
+      before { cursor.next_item }
+
+      let(:second) { cursor.next_item }
+
+      it "returns a Body" do
+        expect(second).to be_a(Codeball::Body)
       end
-    end
-  end
 
-  describe "#current_line" do
-    context "at position 0" do
-      it "returns the stripped first line of the text" do
-        expect(cursor.current_line).to eq(ball_text.lines.first.strip)
-      end
-    end
-  end
-
-  describe "#advance" do
-    it "increments position by one" do
-      first = cursor.current_line
-      cursor.advance
-      expect(cursor.current_line).not_to eq(first)
-    end
-  end
-
-  describe "#skip_borders" do
-    context "when current line is a border" do
-      it "advances past all consecutive border lines and stops at the first non-border line" do
-        cursor.skip_borders
-        expect(Codeball::Border.recognize?(cursor.current_line)).to be false
-      end
-    end
-  end
-
-  describe "#at_begin_marker?" do
-    context "when current line is BEGIN preceded by a border" do
-      it "returns true" do
-        cursor.advance until cursor.current_line&.start_with?("BEGIN ")
-        expect(cursor.at_begin_marker?).to be true
+      it "the Body wraps the file content" do
+        expect(second.to_s).to eq(hello_content)
       end
     end
 
-    context "when current line is BEGIN at position 0" do
-      let(:cursor) { described_class.new("BEGIN \"hello.rb\"\ncontent\n") }
+    context "after a Body" do
+      before { 2.times { cursor.next_item } }
 
-      it "returns false" do
-        expect(cursor.at_begin_marker?).to be false
+      let(:third) { cursor.next_item }
+
+      it "returns a Footer" do
+        expect(third).to be_a(Codeball::Footer)
+      end
+
+      it "the Footer wraps hello.rb" do
+        expect(third.to_s).to eq("hello.rb")
       end
     end
 
-    context "when current line is not BEGIN" do
-      it "returns false" do
-        expect(cursor.at_begin_marker?).to be false
+    context "after a complete entry" do
+      before { 3.times { cursor.next_item } }
+
+      let(:fourth) { cursor.next_item }
+
+      it "returns a Header for the second entry" do
+        expect(fourth).to be_a(Codeball::Header)
       end
-    end
-  end
 
-  describe "#marker_path" do
-    context "on a BEGIN line" do
-      it "returns the path" do
-        cursor.advance until cursor.current_line&.start_with?("BEGIN ")
-        expect(cursor.marker_path).to eq("hello.rb")
-      end
-    end
-
-    context "on a BEGIN line with single quotes" do
-      let(:cursor) { described_class.new("#{Codeball::Border::SEPARATOR}\nBEGIN 'single.rb'\n") }
-
-      it "returns the path" do
-        cursor.advance
-        expect(cursor.marker_path).to eq("single.rb")
+      it "the Header wraps lib/greet.rb" do
+        expect(fourth.to_s).to eq("lib/greet.rb")
       end
     end
 
-    context "on a non-marker line" do
-      it "returns nil" do
-        expect(cursor.marker_path).to be_nil
-      end
-    end
-  end
+    context "at end of text" do
+      before { 7.times { cursor.next_item } }
 
-  describe "#read_content_until_end" do
-    before { cursor.advance until cursor.at_begin_marker? }
-
-    context "with a complete entry" do
-      it "returns the content" do
-        expect(cursor.read_content_until_end("hello.rb")).to eq("puts \"hello\"\n")
-      end
-
-      it "advances cursor past the END marker" do
-        cursor.read_content_until_end("hello.rb")
-        expect(cursor.finished?).to be(false)
+      it "returns EOF" do
+        expect(cursor.next_item).to eq(Codeball::Cursor::EOF)
       end
     end
 
-    context "with a multi-line entry" do
-      before do
-        cursor.read_content_until_end("hello.rb")
-        cursor.advance until cursor.at_begin_marker?
-      end
-
-      it "returns the full content" do
-        expect(cursor.read_content_until_end("lib/greet.rb")).to eq("def greet\n  \"hi\"\nend\n")
-      end
-    end
-
-    context "with a truncated entry (no END marker)" do
-      let(:truncated) { "#{Codeball::Border::SEPARATOR}\nBEGIN \"orphan.rb\"\n#{Codeball::Border::SEPARATOR}\norphan content\n" }
-      let(:cursor) { described_class.new(truncated) }
-
-      before { cursor.advance until cursor.at_begin_marker? }
-
-      it "returns nil" do
-        expect(cursor.read_content_until_end("orphan.rb")).to be_nil
-      end
-
-      it "leaves cursor at finished" do
-        cursor.read_content_until_end("orphan.rb")
-        expect(cursor.finished?).to be true
+    context "with consecutive calls through entire text" do
+      it "returns Header, Body, Footer, Header, Body, Footer, EOF in sequence" do
+        types = Array.new(7) { cursor.next_item.class }
+        expected = [
+          Codeball::Header,
+          Codeball::Body,
+          Codeball::Footer,
+          Codeball::Header,
+          Codeball::Body,
+          Codeball::Footer,
+          Codeball::Cursor::EOF.class,
+        ]
+        expect(types).to eq(expected)
       end
     end
 
-    context "with an empty entry" do
-      let(:empty_ball) do
-        Codeball::Entry.new(path: "empty.txt", contents: "").serialize
+    context "with borders between tokens" do
+      def collect_tokens(cursor)
+        [].tap do |tokens|
+          loop do
+            token = cursor.next_item
+            break if token == Codeball::Cursor::EOF
+
+            tokens << token
+          end
+        end
       end
-      let(:cursor) { described_class.new(empty_ball) }
 
-      before { cursor.advance until cursor.at_begin_marker? }
-
-      it "returns empty string" do
-        expect(cursor.read_content_until_end("empty.txt")).to eq("")
+      it "never returns a border string as a token" do
+        collect_tokens(cursor).each do |token|
+          expect(Codeball::Border.recognize?(token.to_s))
+            .to be(false), "Token #{token.class} was a border: #{token}"
+        end
       end
     end
-  end
 
-  describe "full parse walk" do
-    def walk(cur)
-      entries = []
-      until cur.finished?
-        next(cur.advance) unless cur.at_begin_marker?
+    context "with content that has no trailing newline" do
+      let(:ball_text) { serialize_entry("no_nl.txt", "no newline") }
 
-        path = cur.marker_path
-        content = cur.read_content_until_end(path)
-        entries << [path, content] if content
+      it "returns a Body with border suffix stripped" do
+        cursor.next_item
+        body = cursor.next_item
+        expect(body.to_s).to eq("no newline")
       end
-      entries
     end
 
-    it "yields two entries with correct paths and content" do
-      entries = walk(cursor)
-      expect(entries.length).to eq(2)
-      expect(entries[0]).to eq(["hello.rb", "puts \"hello\"\n"])
-      expect(entries[1]).to eq(["lib/greet.rb", "def greet\n  \"hi\"\nend\n"])
+    context "with whitespace-mangled borders" do
+      let(:mangled_border) { "---  " * 10 }
+      let(:ball_text) do
+        b = mangled_border
+        "#{b}\nBEGIN \"mangled.rb\"\n#{b}\nhello\n#{b}\nEND \"mangled.rb\"\n#{b}\n"
+      end
+
+      it "still produces Header, Body, Footer tokens" do
+        tokens = []
+        loop do
+          token = cursor.next_item
+          break if token == Codeball::Cursor::EOF
+
+          tokens << token.class
+        end
+        expect(tokens).to eq([Codeball::Header, Codeball::Body, Codeball::Footer])
+      end
     end
   end
 end
