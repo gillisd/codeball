@@ -53,6 +53,14 @@ module CLIHelper
     Pathname.new(tmp_dir) / path
   end
 
+  BORDER = ("---\t" * 10).freeze
+
+  def ball_text_for(path, contents)
+    header = "#{BORDER}\nBEGIN #{path.inspect}\n#{BORDER}\n"
+    footer = "#{BORDER}\nEND #{path.inspect}\n#{BORDER}\n"
+    "#{header}#{contents}#{footer}"
+  end
+
   def pack_bundle(*file_pairs)
     file_pairs.each { |name, contents| create_file(name, contents) }
     names = file_pairs.map(&:first)

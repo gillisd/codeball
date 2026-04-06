@@ -3,14 +3,6 @@ require_relative "../spec_helper"
 RSpec.describe "codeball unpack", type: :integration do
   include CLIHelper
 
-  let(:default_border) { "---\t" * 10 }
-
-  def bundle_text_for(path, contents)
-    header = "#{default_border}\nBEGIN #{path.inspect}\n#{default_border}\n"
-    footer = "#{default_border}\nEND #{path.inspect}\n#{default_border}\n"
-    "#{header}#{contents}#{footer}"
-  end
-
   describe "extracting from a file argument" do
     let(:bundle) { pack_bundle(["hello.txt", "hello world\n"]) }
     let(:bundle_path) { create_file("bundle.txt", bundle) }
@@ -127,7 +119,7 @@ RSpec.describe "codeball unpack", type: :integration do
     end
 
     context "with an unsafe path in the bundle" do
-      let(:unsafe_bundle) { bundle_text_for("../escape.txt", "danger\n") }
+      let(:unsafe_bundle) { ball_text_for("../escape.txt", "danger\n") }
       let(:result) { run_codeball("unpack", "--quiet", stdin: unsafe_bundle) }
 
       it "suppresses warnings on stderr" do
@@ -149,7 +141,7 @@ RSpec.describe "codeball unpack", type: :integration do
   end
 
   describe "with a bundle containing an unsafe path" do
-    let(:unsafe_bundle) { bundle_text_for("../etc/passwd", "hacked\n") }
+    let(:unsafe_bundle) { ball_text_for("../etc/passwd", "hacked\n") }
     let(:result) { run_codeball("unpack", stdin: unsafe_bundle) }
 
     it "skips the unsafe entry" do
@@ -169,8 +161,8 @@ RSpec.describe "codeball unpack", type: :integration do
 
   describe "with a truncated bundle" do
     let(:truncated_bundle) do
-      valid = bundle_text_for("good.txt", "valid content\n")
-      incomplete = "#{default_border}\nBEGIN \"orphan.txt\"\n#{default_border}\norphan content\n"
+      valid = ball_text_for("good.txt", "valid content\n")
+      incomplete = "#{CLIHelper::BORDER}\nBEGIN \"orphan.txt\"\n#{CLIHelper::BORDER}\norphan content\n"
       valid + incomplete
     end
     let(:result) { run_codeball("unpack", stdin: truncated_bundle) }
