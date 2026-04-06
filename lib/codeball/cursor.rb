@@ -99,11 +99,6 @@ module Codeball
       advance
     end
 
-    def found_end(match)
-      @pending_footer = match[1]
-      advance
-    end
-
     def found_end_after_border
       advance
       end_match = current_line.match(END_PATTERN)

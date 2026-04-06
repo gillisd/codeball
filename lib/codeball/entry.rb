@@ -76,13 +76,13 @@ module Codeball
     def byte_size = contents&.bytesize || 0
 
     def line_count
-      return 0 if contents.empty?
+      return 0 if contents.nil? || contents.empty?
 
       contents.count("\n") + (contents.end_with?("\n") ? 0 : 1)
     end
 
     def text?
-      contents.empty? || !mime_type.include?("charset=binary")
+      contents.nil? || contents.empty? || !mime_type.include?("charset=binary")
     end
 
     def serialize

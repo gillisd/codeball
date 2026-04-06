@@ -5,8 +5,8 @@ Gem::Specification.new do |spec|
   spec.version = Codeball::VERSION
   spec.authors = ["David Gillis"]
   spec.email = ["david@flipmine.com"]
-  spec.summary = "Bidirectional file bundler for clipboard-friendly LLM workflows"
-  spec.description = "Pack multiple source files into a single plaintext bundle for " \
+  spec.summary = "Bidirectional file packer for clipboard-friendly LLM workflows"
+  spec.description = "Pack multiple source files into a single plaintext codeball for " \
                      "pasting into LLM context windows, then unpack the response back into files."
   spec.homepage = "https://github.com/gillisd/codeball"
   spec.license = "MIT"
