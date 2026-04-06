@@ -74,21 +74,29 @@ module Codeball
 
     def collect_body_lines
       until finished?
-        return found_end(current_line.match(END_PATTERN)) if end_marker?
         return found_end_after_border if border_before_end?
+        return found_end_inline if inline_end_marker?
 
         @body_lines << raw_line
         advance
       end
     end
 
-    def end_marker?
-      current_line&.match?(END_PATTERN)
-    end
-
     def border_before_end?
       Border.recognize?(current_line) &&
         peek_line&.match?(END_PATTERN)
+    end
+
+    def inline_end_marker?
+      return false unless current_line&.match?(END_PATTERN)
+
+      @body_lines.empty? || @body_lines.last&.match?(Border::SUFFIX)
+    end
+
+    def found_end_inline
+      match = current_line.match(END_PATTERN)
+      @pending_footer = match[1]
+      advance
     end
 
     def found_end(match)

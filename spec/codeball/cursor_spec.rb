@@ -121,6 +121,28 @@ RSpec.describe Codeball::Cursor do
       end
     end
 
+    context "with content containing a bare END marker with non-matching path" do
+      let(:content) { "before\nEND \"other_file\"\nafter\n" }
+      let(:ball_text) { serialize_entry("real.rb", content) }
+
+      it "does not terminate body collection on the bare END" do
+        cursor.next_item
+        body = cursor.next_item
+        expect(body.to_s).to eq(content)
+      end
+    end
+
+    context "with content containing a bare END marker with matching path" do
+      let(:content) { "before\nEND \"real.rb\"\nafter\n" }
+      let(:ball_text) { serialize_entry("real.rb", content) }
+
+      it "does not terminate body collection on the bare END" do
+        cursor.next_item
+        body = cursor.next_item
+        expect(body.to_s).to eq(content)
+      end
+    end
+
     context "with whitespace-mangled borders" do
       let(:mangled_border) { "---  " * 10 }
       let(:ball_text) do

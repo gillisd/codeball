@@ -145,9 +145,9 @@ RSpec.describe "codeball pack | unpack round trip", type: :integration do
 
     it "preserves content that contains BEGIN and END keywords" do
       pack_result = run_codeball("pack", "markers.txt")
-      run_codeball("unpack", stdin: pack_result.stdout)
+      run_codeball("unpack", "-o", "out", stdin: pack_result.stdout)
 
-      expect(read_output_file("markers.txt")).to eq(content)
+      expect(read_output_file("out/markers.txt")).to eq(content)
     end
   end
 
