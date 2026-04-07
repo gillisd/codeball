@@ -11,6 +11,7 @@ module Codeball
     end
 
     def extracted = results.count(&:success?)
-    def skipped = results.count { !_1.success? }
+    def skipped = results.count { !it.success? }
+    def dry_run? = results.any? { it.status == :dry_run }
   end
 end

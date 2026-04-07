@@ -13,8 +13,8 @@ module Codeball
 
     # Auto-load subcommands from lib/codeball/commands/*.rb
     include CommandKit::Commands::AutoLoad.new(
-      dir:       File.join(__dir__, "commands"),
-      namespace: "Codeball::Commands"
+      dir: File.join(__dir__, "commands"),
+      namespace: "Codeball::Commands",
     )
 
     command_name "codeball"

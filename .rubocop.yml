@@ -54,6 +54,11 @@ Style/StringLiteralsInInterpolation:
 Style/FrozenStringLiteralComment:
   EnforcedStyle: never
 
+# Freezing constants breaks objects that need post-assignment setup (e.g.
+# Zeitwerk loaders). Not worth the churn.
+Style/MutableConstant:
+  Enabled: false
+
 # Pipeline style. Chaining multi-line blocks is the whole point.
 #
 #   # good — this is how we write Ruby

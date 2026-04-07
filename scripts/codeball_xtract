@@ -1,0 +1,42 @@
+#!/usr/bin/env zsh
+
+typeset -A opt_args
+
+zparseopts \
+  -D \
+  -E \
+  -K \
+  -A \
+  opt_args \
+  -F \
+  - \
+  -envelope
+
+(( ? != 0 )) && return 1
+
+filter() {
+  local pattern1=${1:?}
+  {
+    if (( $+opt_args[--envelope] )); then
+	    print -u2 envelope
+      noglob sed -n "/BEGIN ${(qqq)pattern1}/,/END/p"
+    else
+      noglob sed -n "/BEGIN ${(qqq)pattern1}/,/END/{//d;p}"
+    fi
+   } \
+  | sed '1d;$d'
+}
+
+ codeball_xtract () {
+  emulate -L zsh
+  setopt pipefail
+  setopt errreturn
+  setopt warnnestedvar
+  setopt warncreateglobal
+  local matcher=${1:?} 
+  local file=${2:-/dev/stdin}
+  local pattern1="[^\"]*${matcher}[^\"]*"
+  filter $pattern1 < $file
+}
+
+codeball_xtract ${@}
