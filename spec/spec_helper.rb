@@ -4,6 +4,9 @@ require "pathname"
 require "fileutils"
 require_relative "support/have_output_line"
 
+ENV["TMPDIR"] ||= File.expand_path("../tmp", __dir__)
+FileUtils.mkdir_p(ENV.fetch("TMPDIR"))
+
 ##
 # Harness for running the codeball CLI as a subprocess.
 #

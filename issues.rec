@@ -29,7 +29,7 @@ Description: Version number is not appearing, instead showing:
 + codeball: version unknown
 + 
 + An idiomatic solution should lean on CommandKit's version number feature
-Status: open
+Status: closed
 
 Id: 631BE27A-2A48-11F1-93E9-FE6CB9572C2D
 Updated: Fri, 27 Mar 2026 21:49:41 -0400
@@ -41,4 +41,4 @@ Id: f2ca5c36-31c2-11f1-bf73-fa9e1a133f8e
 Updated: Mon, 06 Apr 2026 14:14:39 +0000
 Title: Test suite writes to /tmp via Dir.mktmpdir
 Description: Dir.mktmpdir uses Dir.tmpdir to resolve the parent directory. Dir.tmpdir checks in order (per /usr/share/ruby/tmpdir.rb lines 130-135): ENV['TMPDIR'], ENV['TMP'], ENV['TEMP'], Etc.systmpdir, /tmp, then current directory. When none of the env vars are set, it falls back to /tmp. This violates the CLAUDE.md hard rule: NEVER write to /tmp. Affected files: spec/spec_helper.rb (CLIHelper#tmp_dir), spec/codeball/destination_spec.rb, and test/entry_test.rb. All calls have after/teardown cleanup so /tmp is not leaked permanently -- the issue is that writes happen to /tmp at all. Fix: set ENV['TMPDIR'] to a project-local directory in spec_helper.rb and test_helper.rb, or pass an explicit second argument to Dir.mktmpdir.
-Status: open
+Status: closed

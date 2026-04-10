@@ -1,15 +1,16 @@
 require "command_kit/commands"
 require "command_kit/commands/auto_load"
+require "command_kit/options/version"
 
 module Codeball
   # Main CLI entry point for Codeball.
   #
-  # Uses command_kit's Commands module to provide a git-style subcommand
-  # interface with automatic help generation and option parsing.
-  #
   class CLI
     include CommandKit::Commands
     include CommandKit::Description
+    include CommandKit::Options::Version
+
+    version Codeball::VERSION
 
     # Auto-load subcommands from lib/codeball/commands/*.rb
     include CommandKit::Commands::AutoLoad.new(
