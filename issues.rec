@@ -53,3 +53,9 @@ Description: Right now codeball pack does not pack anything when called without 
 + 
 + Given that packing all files in repo or workdir is so common, this should be the default
 Status: open
+
+Id: A5290DA8-349A-11F1-BE24-FE6CB9572C2F
+Updated: Fri, 10 Apr 2026 01:03:42 -0400
+Title: Add option to ignore warnings
+Description: Add optarg to ignore warnings, and produce exit code 0 if warnings but no errors occur
+Status: open
