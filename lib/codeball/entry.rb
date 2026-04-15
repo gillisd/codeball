@@ -39,6 +39,12 @@ module Codeball
       @magic_client = self.class.magic_client
     end
 
+    def name=(name)
+      stringified_name = name.to_s
+      self.header = stringified_name
+      self.footer = stringified_name
+    end
+
     def header=(header)
       if @header
         @error = "duplicate header: already have #{@header}, received #{header}"
@@ -64,25 +70,48 @@ module Codeball
       @error = "footer #{footer} does not match header #{header}" unless footer_matches_header?
     end
 
-    def valid? = !!(header && body && footer && !errors? && footer_matches_header?)
-    def incomplete? = !valid? && !errors?
+    def valid?
+      return false unless header
+      return false unless footer
+      return false if errors?
+      return false unless footer_matches_header?
+
+      true
+    end
+
+    def contents = body&.to_s
+    def header? = !header.nil? && !header.empty?
+    def footer? = !footer.nil? && !footer.empty?
+    def contents? = !contents.nil? && !contents.empty?
+    def empty? = !contents?
     def errors? = !error.nil?
-    def truncated? = !!(header && (body.nil? || footer.nil?) && !errors?)
+    def invalid? = !valid?
+    def incomplete? = invalid? && !errors?
+
+    def truncated?
+      missing_body_or_footer = body.nil? || footer.nil?
+      return false unless header?
+      return false unless missing_body_or_footer
+      return false if errors?
+
+      true
+    end
 
     def path = header&.to_s
-    def contents = body&.to_s
 
-    def empty? = contents&.empty? || contents.nil?
     def byte_size = contents&.bytesize || 0
 
     def line_count
-      return 0 if contents.nil? || contents.empty?
+      return 0 if empty?
 
       contents.count("\n") + (contents.end_with?("\n") ? 0 : 1)
     end
 
     def text?
-      contents.nil? || contents.empty? || !mime_type.include?("charset=binary")
+      return true if empty?
+      return false if mime_type.include?("charset=binary")
+
+      true
     end
 
     def serialize
