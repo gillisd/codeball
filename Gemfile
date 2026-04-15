@@ -18,4 +18,4 @@ gem "warning", "~> 1.5"
 gem "rspec", "~> 3.0"
 gem "rubocop-claude", "~> 0.1"
 
-gem "gempilot", "~> 0.1.3"
+gem "gempilot", "~> 0.1"

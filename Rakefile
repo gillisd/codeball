@@ -2,10 +2,9 @@ require "bundler/gem_tasks"
 require "minitest/test_task"
 require "rspec/core/rake_task"
 require "rubocop/rake_task"
-require 'gempilot/version_tasks'
+require "gempilot/version_task"
 
-Gempilot::VersionTasks.new
-
+Gempilot::VersionTask.new
 Minitest::TestTask.create
 RSpec::Core::RakeTask.new(:spec)
 RuboCop::RakeTask.new
