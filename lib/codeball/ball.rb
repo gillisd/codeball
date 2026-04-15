@@ -21,6 +21,7 @@ module Codeball
     def self.load_file(path)
       pathname = Pathname(path)
       raise "No file found" unless pathname.file?
+
       parse(pathname.read)
     end
 
@@ -44,6 +45,7 @@ module Codeball
         end
       )
       raise ArgumentError, "#{identifier} did not match an existing Entry in this Ball" unless to_remove
+
       @entries.delete(to_remove)
     end
 
@@ -65,14 +67,14 @@ module Codeball
     end
 
     def each_entry(&) = entries.select(&:valid?).each(&)
-    def each_text_entry(&) = entries.select(&:valid?).select(&:text?).each(&)
-    def each_non_text_entry(&) = entries.select(&:valid?).reject(&:text?).each(&)
+    def each_text_entry(&) = each_entry.select(&:text?).each(&)
+    def each_non_text_entry(&) = each_entry.reject(&:text?).each(&)
     def each_warning(&) = warnings.each(&)
-    def all_text? = entries.select(&:valid?).all?(&:text?)
+    def all_text? = each_entry.all?(&:text?)
     def warning_count = warnings.length
 
     def serialize
-      entries.select(&:valid?).select(&:text?).map(&:serialize).join
+      each_text_entry.map(&:serialize).join
     end
   end
 end
