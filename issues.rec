@@ -59,3 +59,21 @@ Updated: Fri, 10 Apr 2026 01:03:42 -0400
 Title: Add option to ignore warnings
 Description: Add optarg to ignore warnings, and produce exit code 0 if warnings but no errors occur
 Status: open
+
+Id: D295AB4C-3905-11F1-B000-FE6CB9572C2F
+Updated: Wed, 15 Apr 2026 16:00:59 -0400
+Title: Codeball::Entry#serialize should fail when header is nil
+Description: Right now it serializes with header named nil
+Status: open
+
+Id: EBDED678-3905-11F1-AE17-FE6CB9572C2F
+Updated: Wed, 15 Apr 2026 16:01:42 -0400
+Title: Add Codeball::Entry#file=
+Description: Currently adding an entry requires setting both header and footer manually. should be a way to set file
+Status: open
+
+Id: 1CC3846E-3906-11F1-8CD9-FE6CB9572C2F
+Updated: Wed, 15 Apr 2026 16:03:04 -0400
+Title: Codeball::Entry#header= & Codeball::Entry#footer= logic is finicky
+Description: changes don't seem to save correctly when assigned different values to each
+Status: open
