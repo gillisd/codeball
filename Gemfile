@@ -19,3 +19,5 @@ gem "rspec", "~> 3.0"
 gem "rubocop-claude", "~> 0.1"
 
 gem "gempilot", "~> 0.1"
+
+gem "irb", "~> 1.17"
