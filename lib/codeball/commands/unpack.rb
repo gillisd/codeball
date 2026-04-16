@@ -1,12 +1,14 @@
-require "command_kit/commands/command"
+require "command_kit/command"
 require "command_kit/colors"
+require 'command_kit/open'
 
 module Codeball
   module Commands
     # Extract files from a codeball.
     #
-    class Unpack < CommandKit::Commands::Command
+    class Unpack < CommandKit::Command
       include CommandKit::Colors
+      include CommandKit::Open
 
       usage "[options] [FILE]"
       description "Extract files from a codeball"
@@ -15,6 +17,7 @@ module Codeball
                           value: { type: String, default: "." },
                           desc: "Output directory"
 
+      option :stdout, short: '-O', desc: "Write file contents to stdout instead of to files. (Analagous to tar -Ox)"
       option :dry_run, short: "-n",
                        desc: "Preview extraction without writing files"
 
@@ -30,11 +33,19 @@ module Codeball
         "< bundle.txt",
       ]
 
-      def run(file = nil)
-        ball = Ball.parse(read_input(file))
-        dest = build_destination
+      def run(file = '-')
+        ball = read_input(file)
+                 .then { Ball.parse(it) }
 
         ball.each_warning { |msg| warn colors.yellow("warning: #{msg}") }
+
+        if options[:stdout]
+          ball.each_entry { stdout.puts it.body }
+          return
+        end
+
+        dest = build_destination
+
         ball.each_entry { |entry| dest.write(entry) { |outcome| print_outcome(outcome) } }
 
         print_summary(dest.summary(malformed: ball.warning_count))
@@ -47,9 +58,7 @@ module Codeball
       end
 
       def read_input(file)
-        ARGV.replace(file ? [file] : [])
-        input = ARGF.read
-
+        input = open(file).read
         abort_on_empty(input)
         input
       end
