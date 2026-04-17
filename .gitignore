@@ -10,3 +10,8 @@ Gemfile.lock
 *.gem
 .rspec_status
 .patches/
+env.sh
+off.sh
+on.sh
+codeball.txt
+ball.tar.gz
