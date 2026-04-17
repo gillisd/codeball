@@ -1,5 +1,5 @@
 require "command_kit/command"
-require 'command_kit/open'
+require "command_kit/open"
 require "command_kit/colors"
 
 module Codeball
@@ -12,7 +12,7 @@ module Codeball
       usage "[options] [FILE]"
       description "Filter entries in a codeball"
 
-      option :inverse, short: '-v', desc: 'Reverse direction of filtering'
+      option :inverse, short: "-v", desc: "Reverse direction of filtering"
 
       argument :patterns, required: true, repeats: true, desc: "Patterns to filter on"
       argument :file, required: false, desc: "Codeball file (or stdin if omitted)"
@@ -30,9 +30,9 @@ module Codeball
           path
         else
           args => [*patterns]
-          '-'
+          "-"
         end
-        )
+      )
         io = open file
         input = io.read
 

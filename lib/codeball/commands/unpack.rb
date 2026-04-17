@@ -1,6 +1,6 @@
 require "command_kit/command"
 require "command_kit/colors"
-require 'command_kit/open'
+require "command_kit/open"
 
 module Codeball
   module Commands
@@ -17,7 +17,7 @@ module Codeball
                           value: { type: String, default: "." },
                           desc: "Output directory"
 
-      option :stdout, short: '-O', desc: "Write file contents to stdout instead of to files. (Analagous to tar -Ox)"
+      option :stdout, short: "-O", desc: "Write file contents to stdout instead of to files. (Analagous to tar -Ox)"
       option :dry_run, short: "-n",
                        desc: "Preview extraction without writing files"
 
@@ -33,9 +33,9 @@ module Codeball
         "< bundle.txt",
       ]
 
-      def run(file = '-')
+      def run(file = "-")
         ball = read_input(file)
-                 .then { Ball.parse(it) }
+               .then { Ball.parse(it) }
 
         ball.each_warning { |msg| warn colors.yellow("warning: #{msg}") }
 

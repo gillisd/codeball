@@ -32,21 +32,21 @@ RSpec.describe "codeball list", type: :integration do
     it "exits 0" do
       expect(result.exit_code).to eq(0)
     end
+
+    context "with empty input" do
+      let(:result) { run_codeball("list", stdin: "") }
+
+      it "prints an error to stderr" do
+        expect(result.stderr).to include("no input")
+      end
+
+      it "exits non-zero" do
+        expect(result.exit_code).not_to eq(0)
+      end
+    end
   end
 
-  describe "with empty input" do
-    let(:result) { run_codeball("list", stdin: "") }
-
-    it "prints an error to stderr" do
-      expect(result.stderr).to include("no input")
-    end
-
-    it "exits non-zero" do
-      expect(result.exit_code).not_to eq(0)
-    end
-  end
-
-  describe "with a bundle containing multiple files" do
+  context "with a bundle containing multiple files" do
     let(:bundle_text) do
       pack_bundle(
         ["alpha.rb", "a = 1\n"],
@@ -66,7 +66,7 @@ RSpec.describe "codeball list", type: :integration do
     end
   end
 
-  describe "with a truncated bundle" do
+  context "with a truncated bundle" do
     let(:full_bundle) do
       pack_bundle(
         ["complete.rb", "good = true\n"],
@@ -90,7 +90,7 @@ RSpec.describe "codeball list", type: :integration do
     end
   end
 
-  describe "with a fully malformed bundle (no valid entries)" do
+  context "with a fully malformed bundle (no valid entries)" do
     let(:result) { run_codeball("list", stdin: "this is not a bundle at all\njust garbage\n") }
 
     it "prints an error to stderr" do
