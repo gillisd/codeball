@@ -59,3 +59,15 @@ Updated: Fri, 10 Apr 2026 01:03:42 -0400
 Title: Add option to ignore warnings
 Description: Add optarg to ignore warnings, and produce exit code 0 if warnings but no errors occur
 Status: open
+
+Id: 1FB1874E-39F5-11F1-AB43-FE6CB9572C2F
+Updated: Thu, 16 Apr 2026 20:33:58 -0400
+Title: Possible encoding issues on some platforms
+Description: claude web reports that "Encoding issue — the em-dashes in comments are UTF-8 but Ruby's opening the file as US-ASCII. " when using codeball in a browser-based sandbox
+Status: open
+
+Id: 672E80EA-39F5-11F1-8B16-FE6CB9572C2F
+Updated: Thu, 16 Apr 2026 20:35:58 -0400
+Title: Need to add a dep on ruby-filemagic and/or handle when libmagic-dev is not installed on platform
+Description: Claude tried to run, but got an error saying could not load "filemagic." It should be added to gemspec as a dependency or given an alternative if not present
+Status: open
