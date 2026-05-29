@@ -4,7 +4,7 @@ require "command_kit/colors"
 
 module Codeball
   module Commands
-    # List files contained in a codeball.
+    # Filter entries in a codeball by glob pattern.
     class Filter < CommandKit::Command
       include CommandKit::Open
       include CommandKit::Colors
@@ -14,14 +14,20 @@ module Codeball
 
       option :inverse, short: "-v", desc: "Reverse direction of filtering"
 
+      # Flags chosen so glob semantics match what users expect from shell
+      # globs: FNM_PATHNAME makes '*' stop at '/' and enables '**/' for
+      # recursive matching; FNM_EXTGLOB enables '{rb,py}' brace expansion.
+      FNMATCH_FLAGS = File::FNM_PATHNAME | File::FNM_EXTGLOB
+
       argument :patterns, required: true, repeats: true, desc: "Patterns to filter on"
       argument :file, required: false, desc: "Codeball file (or stdin if omitted)"
 
-      examples ["bundle.txt", "< bundle.txt"]
-
-      def env
-        (super || {}).merge("TERM" => "1")
-      end
+      examples [
+        "'*.rb' bundle.txt",
+        "'*.rb' < bundle.txt",
+        "'lib/**/*.rb' bundle.txt",
+        "-v 'test/**' bundle.txt"
+      ]
 
       def run(*args)
         file = (
@@ -40,7 +46,7 @@ module Codeball
 
         ball = Ball.parse(input)
 
-        ball.each_warning { |msg| stderr.puts colors.yellow("warning: #{msg}") }
+        ball.each_warning { |msg| stderr.puts colors(stderr).yellow("warning: #{msg}") }
 
         ball
           .each_entry
@@ -54,7 +60,7 @@ module Codeball
 
       def match?(patterns, entry)
         verb = options[:inverse] ? :none? : :any?
-        patterns.public_send(verb) { |pattern| File.fnmatch?(pattern, entry.path) }
+        patterns.public_send(verb) { |pattern| File.fnmatch?(pattern, entry.path, FNMATCH_FLAGS) }
       end
 
       def abort_if_empty(input)
