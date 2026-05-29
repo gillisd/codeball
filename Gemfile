@@ -3,21 +3,18 @@ source "https://rubygems.org"
 gemspec
 
 gem "command_kit"
+gem "gempilot", "~> 0.1"
+gem "irb", "~> 1.17"
 gem "minitest", "~> 6.0"
 gem "minitest-mock", "~> 5.0"
 gem "minitest-reporters", github: "minitest-reporters/minitest-reporters"
 gem "rake"
+gem "rspec", "~> 3.0"
 gem "rubocop"
+gem "rubocop-claude", "~> 0.1"
 gem "rubocop-md"
 gem "rubocop-minitest"
 gem "rubocop-performance"
 gem "rubocop-rake"
 gem "ruby-filemagic", "~> 0.7.3"
 gem "warning", "~> 1.5"
-
-gem "rspec", "~> 3.0"
-gem "rubocop-claude", "~> 0.1"
-
-gem "gempilot", "~> 0.1"
-
-gem "irb", "~> 1.17"
