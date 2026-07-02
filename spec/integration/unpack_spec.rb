@@ -4,14 +4,15 @@ RSpec.describe "codeball unpack", type: :integration do
   include CLIHelper
 
   describe "with --stdout (-O)" do
+    # Include a file with NO trailing newline to prove -O emits raw bytes
+    # (tar -Ox parity) and does not append a newline of its own.
     let(:bundle) do
-      ball_text_for("a.txt", "alpha\n") + ball_text_for("b.txt", "beta\n")
+      ball_text_for("a.txt", "alpha\n") + ball_text_for("b.txt", "beta-no-newline")
     end
     let(:result) { run_codeball("unpack", "-O", stdin: bundle) }
 
-    it "writes file contents to stdout" do
-      expect(result.stdout).to include("alpha")
-      expect(result.stdout).to include("beta")
+    it "writes raw file contents to stdout with no added newline" do
+      expect(result.stdout).to eq("alpha\nbeta-no-newline")
     end
 
     it "does not write any files to disk" do

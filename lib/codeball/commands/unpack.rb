@@ -15,7 +15,7 @@ module Codeball
                           value: { type: String, default: "." },
                           desc: "Output directory"
 
-      option :stdout, short: "-O", desc: "Write file contents to stdout instead of to files. (Analagous to tar -Ox)"
+      option :stdout, short: "-O", desc: "Write file contents to stdout instead of to files. (Analogous to tar -Ox)"
       option :dry_run, short: "-n",
                        desc: "Preview extraction without writing files"
 
@@ -46,7 +46,7 @@ module Codeball
       end
 
       def dump_to_stdout(ball)
-        ball.each_entry { |entry| stdout.puts entry.contents }
+        ball.each_entry { |entry| stdout.print entry.contents }
       end
 
       def extract_to_disk(ball)
