@@ -3,6 +3,51 @@ require_relative "../spec_helper"
 RSpec.describe "codeball unpack", type: :integration do
   include CLIHelper
 
+  describe "with --stdout (-O)" do
+    let(:bundle) do
+      ball_text_for("a.txt", "alpha\n") + ball_text_for("b.txt", "beta\n")
+    end
+    let(:result) { run_codeball("unpack", "-O", stdin: bundle) }
+
+    it "writes file contents to stdout" do
+      expect(result.stdout).to include("alpha")
+      expect(result.stdout).to include("beta")
+    end
+
+    it "does not write any files to disk" do
+      result
+      expect(output_path("a.txt")).not_to exist
+      expect(output_path("b.txt")).not_to exist
+    end
+
+    it "exits 0" do
+      expect(result.exit_code).to eq(0)
+    end
+  end
+
+  describe "with a nonexistent FILE argument" do
+    let(:result) { run_codeball("unpack", "no_such_bundle.txt") }
+
+    it "prints a helpful error naming the file" do
+      expect(result.stderr).to match(/no such file/i)
+      expect(result.stderr).to include("no_such_bundle.txt")
+    end
+
+    it "exits non-zero" do
+      expect(result.exit_code).not_to eq(0)
+    end
+  end
+
+  describe "with an explicit '-' file argument" do
+    let(:bundle) { ball_text_for("dash.txt", "via dash\n") }
+    let(:result) { run_codeball("unpack", "-O", "-", stdin: bundle) }
+
+    it "treats - as stdin" do
+      expect(result.stdout).to include("via dash")
+      expect(result.exit_code).to eq(0)
+    end
+  end
+
   describe "extracting from a file argument" do
     let(:bundle) { pack_bundle(["hello.txt", "hello world\n"]) }
     let(:bundle_path) { create_file("bundle.txt", bundle) }
