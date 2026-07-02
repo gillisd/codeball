@@ -19,6 +19,8 @@ plugins:
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.4.8
+  Exclude:
+    - "docs/**/*"
 
 # ===========================================================================
 # Overrides from stock — personal style preferences
