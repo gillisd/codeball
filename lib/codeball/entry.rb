@@ -72,6 +72,7 @@ module Codeball
 
     def valid?
       return false unless header
+      return false unless body
       return false unless footer
       return false if errors?
       return false unless footer_matches_header?

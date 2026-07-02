@@ -148,6 +148,17 @@ RSpec.describe Codeball::Entry do
         expect(entry.error).to include("duplicate footer")
       end
     end
+
+    context "with a matching footer but no body" do
+      before do
+        entry.header = Codeball::Header.new("hello.rb")
+        entry.footer = Codeball::Footer.new("hello.rb")
+      end
+
+      it "is not valid" do
+        expect(entry.valid?).to be false
+      end
+    end
   end
 
   describe "#truncated?" do
