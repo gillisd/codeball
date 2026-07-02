@@ -2,8 +2,10 @@ module Codeball
   # A codeball -- the aggregate root.
   #
   # Ball starts empty and grows as entries are added, like a snowball.
-  # It does not touch the filesystem. Parse is a thin factory that
-  # wires Cursor -> Stream -> Ball.
+  # An instance holds parsed entries in memory and does no I/O itself.
+  # Two class factories build one from source: parse (from an in-memory
+  # string, wiring Cursor -> Stream -> Ball) and load_file (which reads
+  # the source file from disk, then parses it).
   #
   class Ball
     def self.parse(text)
