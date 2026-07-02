@@ -37,12 +37,15 @@ module Codeball
 
       private
 
-      # The trailing argument is the codeball file when it names a readable
-      # file on disk; otherwise every argument is a pattern and the ball is
-      # read from stdin. This behaves the same interactively and in pipes.
+      # The trailing argument is the codeball file only when there is at
+      # least one preceding pattern and it names a readable file on disk;
+      # otherwise every argument is a pattern and the ball is read from
+      # stdin. Requiring a preceding pattern keeps a lone argument a pattern
+      # (so `filter '*.rb'` filters stdin instead of trying to open '*.rb')
+      # and guarantees patterns is never empty.
       def split_source(args)
         *leading, last = args
-        last && File.file?(last) ? [leading, last] : [args, nil]
+        leading.any? && File.file?(last) && File.readable?(last) ? [leading, last] : [args, nil]
       end
 
       def read_input(file)

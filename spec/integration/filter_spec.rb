@@ -89,4 +89,35 @@ RSpec.describe "codeball filter", type: :integration do
       expect(result.stderr).to include("no input")
     end
   end
+
+  describe "when the sole argument also names a file on disk (finding A)" do
+    # pack_bundle wrote lib/app.rb into the working dir, so that name is now
+    # both a valid glob pattern AND an existing file. A lone argument must
+    # stay a pattern -- it must never be consumed as the ball file, which
+    # would leave zero patterns and silently drop every entry.
+    let(:result) { run_codeball("filter", "lib/app.rb", stdin: bundle) }
+
+    it "treats it as a pattern and filters stdin" do
+      expect(entries_in(result.stdout)).to contain_exactly("lib/app.rb")
+    end
+
+    it "exits 0" do
+      expect(result.exit_code).to eq(0)
+    end
+  end
+
+  describe "when the trailing argument is an unreadable file (finding E)" do
+    before { skip "chmod has no effect when running as root" if Process.uid.zero? }
+
+    let(:result) do
+      path = create_file("locked.ball", "secret\n")
+      File.chmod(0o000, path)
+      run_codeball("filter", "lib/**/*.rb", "locked.ball", stdin: bundle)
+    end
+
+    it "treats the unreadable file as a pattern and filters stdin instead of crashing" do
+      expect(result.exit_code).to eq(0)
+      expect(entries_in(result.stdout)).to contain_exactly("lib/app.rb", "lib/nested/helper.rb")
+    end
+  end
 end
