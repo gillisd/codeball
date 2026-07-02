@@ -39,12 +39,6 @@ module Codeball
       @magic_client = self.class.magic_client
     end
 
-    def name=(name)
-      stringified_name = name.to_s
-      self.header = stringified_name
-      self.footer = stringified_name
-    end
-
     def header=(header)
       if @header
         @error = "duplicate header: already have #{@header}, received #{header}"
