@@ -6,8 +6,6 @@ module Codeball
   # wires Cursor -> Stream -> Ball.
   #
   class Ball
-    attr_reader :entries, :warnings
-
     def self.parse(text)
       raise MalformedBallError, "empty input, nothing to extract" if text.nil? || text.strip.empty?
 
@@ -76,5 +74,9 @@ module Codeball
     def serialize
       each_text_entry.map(&:serialize).join
     end
+
+    private
+
+    attr_reader :entries, :warnings
   end
 end

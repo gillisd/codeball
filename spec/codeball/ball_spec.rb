@@ -38,6 +38,18 @@ RSpec.describe Codeball::Ball do
       serialize_entry("lib/greet.rb", "def greet\n  'hi'\nend\n")
   end
 
+  describe "encapsulation" do
+    it "keeps entries a private reader" do
+      expect(described_class.public_method_defined?(:entries)).to be false
+      expect(described_class.private_method_defined?(:entries)).to be true
+    end
+
+    it "keeps warnings a private reader" do
+      expect(described_class.public_method_defined?(:warnings)).to be false
+      expect(described_class.private_method_defined?(:warnings)).to be true
+    end
+  end
+
   describe ".parse" do
     context "with valid two-entry codeball text" do
       let(:ball) { described_class.parse(ball_text) }
