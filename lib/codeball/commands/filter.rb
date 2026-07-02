@@ -1,12 +1,10 @@
 require "command_kit/command"
-require "command_kit/open"
 require "command_kit/colors"
 
 module Codeball
   module Commands
     # Filter entries in a codeball by glob pattern.
     class Filter < CommandKit::Command
-      include CommandKit::Open
       include CommandKit::Colors
 
       usage "[options] [FILE]"
@@ -26,37 +24,40 @@ module Codeball
         "'*.rb' bundle.txt",
         "'*.rb' < bundle.txt",
         "'lib/**/*.rb' bundle.txt",
-        "-v 'test/**' bundle.txt"
+        "-v 'test/**' bundle.txt",
       ]
 
       def run(*args)
-        file = (
-        if stdin.tty?
-          args => [*patterns, path]
-          path
-        else
-          args => [*patterns]
-          "-"
-        end
-      )
-        io = open file
-        input = io.read
-
-        abort_if_empty(input)
-
-        ball = Ball.parse(input)
-
-        ball.each_warning { |msg| stderr.puts colors(stderr).yellow("warning: #{msg}") }
-
-        ball
-          .each_entry
-          .reject { match?(patterns, it) }
-          .each { ball.remove_entry it }
-
+        patterns, file = split_source(args)
+        ball = Ball.parse(read_input(file))
+        report_warnings(ball)
+        drop_unmatched(ball, patterns)
         stdout.puts ball.serialize
       end
 
       private
+
+      # The trailing argument is the codeball file when it names a readable
+      # file on disk; otherwise every argument is a pattern and the ball is
+      # read from stdin. This behaves the same interactively and in pipes.
+      def split_source(args)
+        *leading, last = args
+        last && File.file?(last) ? [leading, last] : [args, nil]
+      end
+
+      def read_input(file)
+        input = file ? File.read(file) : stdin.read
+        abort_if_empty(input)
+        input
+      end
+
+      def report_warnings(ball)
+        ball.each_warning { |msg| stderr.puts colors(stderr).yellow("warning: #{msg}") }
+      end
+
+      def drop_unmatched(ball, patterns)
+        ball.each_entry.reject { match?(patterns, it) }.each { ball.remove_entry(it) }
+      end
 
       def match?(patterns, entry)
         verb = options[:inverse] ? :none? : :any?
