@@ -14,6 +14,7 @@ plugins:
   - rubocop-performance
   - rubocop-minitest
   - rubocop-md
+  - rubocop-rubycw
   - rubocop-rake
 
 AllCops:
@@ -340,5 +341,3 @@ Style/TrailingCommaInHashLiteral:
 
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: comma
-
-
