@@ -52,7 +52,7 @@ RSpec.describe Codeball::Ball do
 
   describe ".parse" do
     context "with valid two-entry codeball text" do
-      let(:ball) { described_class.parse(ball_text) }
+      subject(:ball) { described_class.parse(ball_text) }
 
       it "returns a Ball" do
         expect(ball).to be_a(described_class)
@@ -95,7 +95,7 @@ RSpec.describe Codeball::Ball do
         incomplete = "#{border}\nBEGIN \"orphan.rb\"\n#{border}\norphan content\n"
         complete + incomplete
       end
-      let(:ball) { described_class.parse(truncated_text) }
+      subject(:ball) { described_class.parse(truncated_text) }
 
       it "returns a Ball" do
         expect(ball).to be_a(described_class)
@@ -120,7 +120,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe ".new" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     it "creates an empty Ball" do
       entries = []
@@ -134,7 +134,8 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#add_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
+
 
     context "with a valid entry" do
       before { ball.add_entry(valid_entry) }
@@ -184,7 +185,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     before do
       ball.add_entry(valid_entry(path: "hello.rb"))
@@ -205,7 +206,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_text_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     before do
       ball.add_entry(valid_entry)
@@ -220,7 +221,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_non_text_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     before do
       ball.add_entry(valid_entry)
@@ -235,7 +236,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#all_text?" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     context "when all entries are text" do
       before { ball.add_entry(valid_entry) }
@@ -258,7 +259,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#serialize" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     describe "output format" do
       before { ball.add_entry(valid_entry) }
@@ -285,7 +286,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#validate!" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     context "with entries present" do
       before { ball.add_entry(valid_entry) }
