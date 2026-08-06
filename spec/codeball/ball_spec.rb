@@ -136,6 +136,11 @@ RSpec.describe Codeball::Ball do
   describe "#add_entry" do
     subject(:ball) { described_class.new }
 
+    context "with a nil entry" do
+      it "raises an ArgumentError" do
+        expect { ball.add_entry(nil) }.to raise_error ArgumentError
+      end
+    end
 
     context "with a valid entry" do
       before { ball.add_entry(valid_entry) }
@@ -180,6 +185,26 @@ RSpec.describe Codeball::Ball do
         entries = []
         ball.each_entry { |e| entries << e }
         expect(entries).to be_empty
+      end
+    end
+
+    context "when a block is supplied" do
+      let(:body) { "mybody" }
+      let(:name) { "myname" }
+      let(:entry) { spy "Entry" }
+
+      before do
+        allow(Codeball::Entry).to receive(:new).and_return(entry)
+      end
+
+      it "yields the entry for assignment" do
+        ball.add_entry do |s|
+          s.name = name
+          s.body = body
+        end
+
+        expect(entry).to have_received(:name=).with(name)
+        expect(entry).to have_received(:body=).with(body)
       end
     end
   end

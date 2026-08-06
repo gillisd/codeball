@@ -30,7 +30,10 @@ module Codeball
       @warnings = []
     end
 
-    def add_entry(entry)
+    def add_entry(entry = Entry.new)
+      yield entry if block_given?
+      raise ArgumentError, "Entry cannot be nil" if entry.nil?
+
       @entries << entry
       @warnings << entry.error if entry.errors?
       @warnings << "truncated entry for #{entry.path.inspect} - missing END marker" if entry.truncated?
