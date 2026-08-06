@@ -71,3 +71,9 @@ Updated: Thu, 16 Apr 2026 20:35:58 -0400
 Title: Need to add a dep on ruby-filemagic and/or handle when libmagic-dev is not installed on platform
 Description: Claude tried to run, but got an error saying could not load "filemagic." It should be added to gemspec as a dependency or given an alternative if not present
 Status: open
+
+Id: 370D054E-8144-11F1-9126-FE6CB9572C2F
+Updated: Thu, 16 Jul 2026 11:29:00 -0700
+Title: "cannot load such file -- filemagic"
+Description: filemagic should be optional
+Status: open
