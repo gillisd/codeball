@@ -31,6 +31,23 @@ RSpec.describe Codeball::Entry do
     end
   end
 
+  describe "#name" do
+    subject { described_class.new }
+    let(:name) { "myclass.rb" }
+
+    it "sets the header" do
+      expect {
+        subject.name = name
+      }.to change { subject.header }.from(nil).to(Codeball::Header.new(name))
+    end
+
+    it "sets the footer" do
+      expect {
+        subject.name = name
+      }.to change { subject.footer }.from(nil).to(Codeball::Footer.new(name))
+    end
+  end
+
   describe "#header=" do
     let(:entry) { described_class.new }
 
