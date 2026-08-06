@@ -14,7 +14,6 @@ plugins:
   - rubocop-performance
   - rubocop-minitest
   - rubocop-md
-  - rubocop-rubycw
   - rubocop-rake
 
 AllCops:
@@ -22,6 +21,7 @@ AllCops:
   TargetRubyVersion: 3.4.8
   Exclude:
     - "docs/**/*"
+    - "references/**/*"
 
 # ===========================================================================
 # Overrides from stock — personal style preferences
