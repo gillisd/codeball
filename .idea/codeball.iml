@@ -51,7 +51,6 @@
     <orderEntry type="library" scope="PROVIDED" name="rubocop-performance (v1.26.1, rbenv: 4.0.1) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop-rake (v0.7.1, rbenv: 4.0.1) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop-rspec (v3.10.2, rbenv: 4.0.1) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="rubocop-rubycw (v0.2.2, rbenv: 4.0.1) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-filemagic (v0.7.3, rbenv: 4.0.1) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-progressbar (v1.13.0, rbenv: 4.0.1) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="tsort (v0.2.0, rbenv: 4.0.1) [gem]" level="application" />
