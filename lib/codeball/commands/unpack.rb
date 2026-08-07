@@ -1,11 +1,11 @@
-require "command_kit/commands/command"
+require "command_kit/command"
 require "command_kit/colors"
 
 module Codeball
   module Commands
     # Extract files from a codeball.
     #
-    class Unpack < CommandKit::Commands::Command
+    class Unpack < CommandKit::Command
       include CommandKit::Colors
 
       usage "[options] [FILE]"
@@ -15,6 +15,7 @@ module Codeball
                           value: { type: String, default: "." },
                           desc: "Output directory"
 
+      option :stdout, short: "-O", desc: "Write file contents to stdout instead of to files. (Analogous to tar -Ox)"
       option :dry_run, short: "-n",
                        desc: "Preview extraction without writing files"
 
@@ -32,29 +33,45 @@ module Codeball
 
       def run(file = nil)
         ball = Ball.parse(read_input(file))
-        dest = build_destination
+        report_warnings(ball)
+        return dump_to_stdout(ball) if options[:stdout]
 
-        ball.each_warning { |msg| warn colors.yellow("warning: #{msg}") }
-        ball.each_entry { |entry| dest.write(entry) { |outcome| print_outcome(outcome) } }
-
-        print_summary(dest.summary(malformed: ball.warning_count))
+        extract_to_disk(ball)
       end
 
       private
+
+      def report_warnings(ball)
+        ball.each_warning { |msg| warn colors.yellow("warning: #{msg}") }
+      end
+
+      def dump_to_stdout(ball)
+        ball.each_entry { |entry| stdout.print entry.contents }
+      end
+
+      def extract_to_disk(ball)
+        dest = build_destination
+        ball.each_entry { |entry| dest.write(entry) { |outcome| print_outcome(outcome) } }
+        print_summary(dest.summary(malformed: ball.warning_count))
+      end
 
       def build_destination
         Destination.new(options[:output_dir], dry_run: options[:dry_run])
       end
 
       def read_input(file)
-        ARGV.replace(file ? [file] : [])
-        input = ARGF.read
-
-        abort_on_empty(input)
+        input = case file
+                when nil, "-" then stdin.read
+                else File.read(file)
+                end
+        abort_if_empty(input)
         input
+      rescue Errno::ENOENT
+        print_error "no such file: #{file}"
+        exit 1
       end
 
-      def abort_on_empty(input)
+      def abort_if_empty(input)
         return unless input.nil? || input.strip.empty?
 
         print_error "no input"

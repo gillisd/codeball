@@ -19,12 +19,10 @@ module Codeball
       pathname = Pathname.new(path)
       return nil unless pathname.exist? && pathname.readable?
 
-      entry = new
-      name = pathname.to_s
-      entry.header = Header.new(name)
-      entry.body = Body.new(pathname.read)
-      entry.footer = Footer.new(name)
-      entry
+      new do |entry|
+        entry.body = Body.new(pathname.read)
+        entry.name = pathname.to_s
+      end
     end
 
     def self.magic_client
@@ -37,6 +35,12 @@ module Codeball
       @footer = nil
       @error = nil
       @magic_client = self.class.magic_client
+      yield self if block_given?
+    end
+
+    def name=(name)
+      self.header = Header.new(name)
+      self.footer = Footer.new(name)
     end
 
     def header=(header)
@@ -45,14 +49,6 @@ module Codeball
         return
       end
       @header = header
-    end
-
-    def body=(body)
-      if @body
-        @error = "duplicate body for #{path}"
-        return
-      end
-      @body = body
     end
 
     def footer=(footer)
@@ -64,25 +60,64 @@ module Codeball
       @error = "footer #{footer} does not match header #{header}" unless footer_matches_header?
     end
 
-    def valid? = !!(header && body && footer && !errors? && footer_matches_header?)
-    def incomplete? = !valid? && !errors?
-    def errors? = !error.nil?
-    def truncated? = !!(header && (body.nil? || footer.nil?) && !errors?)
+    def body=(body)
+      if @body
+        @error = "duplicate body for #{path}"
+        return
+      end
+      @body = body
+    end
 
-    def path = header&.to_s
+    def valid?
+      return false unless header
+      return false unless body
+      return false unless footer
+      return false if errors?
+      return false unless footer_matches_header?
+
+      true
+    end
+
     def contents = body&.to_s
 
-    def empty? = contents&.empty? || contents.nil?
+    def header? = !header.nil? && !header.empty?
+
+    def footer? = !footer.nil? && !footer.empty?
+
+    def contents? = !contents.nil? && !contents.empty?
+
+    def empty? = !contents?
+
+    def errors? = !error.nil?
+
+    def invalid? = !valid?
+
+    def incomplete? = invalid? && !errors?
+
+    def truncated?
+      missing_body_or_footer = body.nil? || footer.nil?
+      return false unless header?
+      return false unless missing_body_or_footer
+      return false if errors?
+
+      true
+    end
+
+    def path = header&.to_s
+
     def byte_size = contents&.bytesize || 0
 
     def line_count
-      return 0 if contents.nil? || contents.empty?
+      return 0 if empty?
 
       contents.count("\n") + (contents.end_with?("\n") ? 0 : 1)
     end
 
     def text?
-      contents.nil? || contents.empty? || !mime_type.include?("charset=binary")
+      return true if empty?
+      return false if mime_type.include?("charset=binary")
+
+      true
     end
 
     def serialize

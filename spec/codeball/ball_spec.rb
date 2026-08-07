@@ -38,9 +38,21 @@ RSpec.describe Codeball::Ball do
       serialize_entry("lib/greet.rb", "def greet\n  'hi'\nend\n")
   end
 
+  describe "encapsulation" do
+    it "keeps entries a private reader" do
+      expect(described_class.public_method_defined?(:entries)).to be false
+      expect(described_class.private_method_defined?(:entries)).to be true
+    end
+
+    it "keeps warnings a private reader" do
+      expect(described_class.public_method_defined?(:warnings)).to be false
+      expect(described_class.private_method_defined?(:warnings)).to be true
+    end
+  end
+
   describe ".parse" do
     context "with valid two-entry codeball text" do
-      let(:ball) { described_class.parse(ball_text) }
+      subject(:ball) { described_class.parse(ball_text) }
 
       it "returns a Ball" do
         expect(ball).to be_a(described_class)
@@ -83,7 +95,7 @@ RSpec.describe Codeball::Ball do
         incomplete = "#{border}\nBEGIN \"orphan.rb\"\n#{border}\norphan content\n"
         complete + incomplete
       end
-      let(:ball) { described_class.parse(truncated_text) }
+      subject(:ball) { described_class.parse(truncated_text) }
 
       it "returns a Ball" do
         expect(ball).to be_a(described_class)
@@ -108,7 +120,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe ".new" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     it "creates an empty Ball" do
       entries = []
@@ -122,7 +134,13 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#add_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
+
+    context "with a nil entry" do
+      it "raises an ArgumentError" do
+        expect { ball.add_entry(nil) }.to raise_error ArgumentError
+      end
+    end
 
     context "with a valid entry" do
       before { ball.add_entry(valid_entry) }
@@ -169,10 +187,30 @@ RSpec.describe Codeball::Ball do
         expect(entries).to be_empty
       end
     end
+
+    context "when a block is supplied" do
+      let(:body) { "mybody" }
+      let(:name) { "myname" }
+      let(:entry) { spy "Entry" }
+
+      before do
+        allow(Codeball::Entry).to receive(:new).and_return(entry)
+      end
+
+      it "yields the entry for assignment" do
+        ball.add_entry do |s|
+          s.name = name
+          s.body = body
+        end
+
+        expect(entry).to have_received(:name=).with(name)
+        expect(entry).to have_received(:body=).with(body)
+      end
+    end
   end
 
   describe "#each_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     before do
       ball.add_entry(valid_entry(path: "hello.rb"))
@@ -193,7 +231,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_text_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     before do
       ball.add_entry(valid_entry)
@@ -208,7 +246,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#each_non_text_entry" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     before do
       ball.add_entry(valid_entry)
@@ -223,7 +261,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#all_text?" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     context "when all entries are text" do
       before { ball.add_entry(valid_entry) }
@@ -246,7 +284,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#serialize" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     describe "output format" do
       before { ball.add_entry(valid_entry) }
@@ -273,7 +311,7 @@ RSpec.describe Codeball::Ball do
   end
 
   describe "#validate!" do
-    let(:ball) { described_class.new }
+    subject(:ball) { described_class.new }
 
     context "with entries present" do
       before { ball.add_entry(valid_entry) }

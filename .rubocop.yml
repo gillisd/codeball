@@ -19,6 +19,9 @@ plugins:
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.4.8
+  Exclude:
+    - "docs/**/*"
+    - "references/**/*"
 
 # ===========================================================================
 # Overrides from stock — personal style preferences
@@ -338,5 +341,3 @@ Style/TrailingCommaInHashLiteral:
 
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: comma
-
-

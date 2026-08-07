@@ -2,8 +2,10 @@ module Codeball
   # A codeball -- the aggregate root.
   #
   # Ball starts empty and grows as entries are added, like a snowball.
-  # It does not touch the filesystem. Parse is a thin factory that
-  # wires Cursor -> Stream -> Ball.
+  # An instance holds parsed entries in memory and does no I/O itself.
+  # Two class factories build one from source: parse (from an in-memory
+  # string, wiring Cursor -> Stream -> Ball) and load_file (which reads
+  # the source file from disk, then parses it).
   #
   class Ball
     def self.parse(text)
@@ -16,15 +18,38 @@ module Codeball
       ball
     end
 
+    def self.load_file(path)
+      pathname = Pathname(path)
+      raise "No file found" unless pathname.file?
+
+      parse(pathname.read)
+    end
+
     def initialize
       @entries = []
       @warnings = []
     end
 
-    def add_entry(entry)
+    def add_entry(entry = Entry.new)
+      yield entry if block_given?
+      raise ArgumentError, "Entry cannot be nil" if entry.nil?
+
       @entries << entry
       @warnings << entry.error if entry.errors?
       @warnings << "truncated entry for #{entry.path.inspect} - missing END marker" if entry.truncated?
+    end
+
+    def remove_entry(identifier)
+      to_remove = (
+        case identifier
+        in Entry then identifier
+        in String then each_entry.find { it.header == identifier }
+        else raise ArgumentError, "#{identifier} is not a valid Entry or identifier"
+        end
+      )
+      raise ArgumentError, "#{identifier} did not match an existing Entry in this Ball" unless to_remove
+
+      @entries.delete(to_remove)
     end
 
     def validate!
@@ -36,15 +61,23 @@ module Codeball
       end
     end
 
+    def files
+      each_entry.map(&:header)
+    end
+
+    def entry_count
+      each_entry.count
+    end
+
     def each_entry(&) = entries.select(&:valid?).each(&)
-    def each_text_entry(&) = entries.select(&:valid?).select(&:text?).each(&)
-    def each_non_text_entry(&) = entries.select(&:valid?).reject(&:text?).each(&)
+    def each_text_entry(&) = each_entry.select(&:text?).each(&)
+    def each_non_text_entry(&) = each_entry.reject(&:text?).each(&)
     def each_warning(&) = warnings.each(&)
-    def all_text? = entries.select(&:valid?).all?(&:text?)
+    def all_text? = each_entry.all?(&:text?)
     def warning_count = warnings.length
 
     def serialize
-      entries.select(&:valid?).select(&:text?).map(&:serialize).join
+      each_text_entry.map(&:serialize).join
     end
 
     private
